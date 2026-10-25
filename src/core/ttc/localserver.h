@@ -80,6 +80,10 @@ private:
     void onFinished(int code, QProcess::ExitStatus status);
     void appendLog(const QString& text);
     static bool portIsFree(int port, const QString& bindIp);
+    QString pidPath() const;
+    /// Stop a server this folder started in an earlier session that did not
+    /// end cleanly (TT Central crashed), so it does not hold the port.
+    void reclaimLeftover();
 
     QString m_exe;
     QString m_workDir;

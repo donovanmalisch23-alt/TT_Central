@@ -117,6 +117,44 @@ private slots:
         server.stop();
     }
 
+    void stopsAServerLeftByAnEarlierSession()
+    {
+        QTemporaryDir dir;
+        const QString folder = dir.filePath(QStringLiteral("srv"));
+        const int port = freePort();
+        QString err;
+        qint64 leftover = 0;
+        {
+            // An earlier session started a server, then "crashed" without
+            // stopping it: simulate by starting one outside LocalServer and
+            // leaving the pid file behind.
+            LocalServer first(serverExe(), folder);
+            QVERIFY2(first.setConfig(config(port), &err), qPrintable(err));
+        }
+        QProcess orphan;
+        orphan.start(serverExe(), {QStringLiteral("-nd"), QStringLiteral("-wd"), folder});
+        QVERIFY(orphan.waitForStarted(10000));
+        leftover = orphan.processId();
+        QVERIFY(waitUntil([&] {
+            QTcpSocket s;
+            s.connectToHost(QHostAddress::LocalHost, quint16(port));
+            return s.waitForConnected(200);
+        }, 15000));
+        QFile pid(QDir(folder).filePath(QStringLiteral("tt5srv.pid")));
+        QVERIFY(pid.open(QIODevice::WriteOnly));
+        pid.write(QByteArray::number(leftover));
+        pid.close();
+
+        LocalServer next(serverExe(), folder);
+        next.start();
+        QVERIFY2(waitUntil([&] { return next.state() == LocalServer::State::Running; }, 20000), qPrintable(next.stateText()));
+        // The leftover was stopped.
+        QVERIFY2(waitUntil([&] { return orphan.state() == QProcess::NotRunning; }, 10000),
+                 qPrintable(next.logTail().join(QStringLiteral(" / "))));
+        QVERIFY(next.logTail().join(QChar('\n')).contains(QStringLiteral("earlier session")));
+        next.stop();
+    }
+
     void refusesAPortInUse()
     {
         QTemporaryDir dir;

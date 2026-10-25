@@ -11,6 +11,16 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QTextStream>
+#include <QThread>
+
+#if defined(Q_OS_WIN)
+#  ifndef NOMINMAX
+#    define NOMINMAX
+#  endif
+#  include <windows.h>
+#else
+#  include <csignal>
+#endif
 
 namespace ttc {
 
@@ -58,6 +68,69 @@ QString LocalServer::findServerExecutable(const QString& fallback)
 QString LocalServer::configPath() const
 {
     return QDir(m_workDir).filePath(QStringLiteral("tt5srv.xml"));
+}
+
+QString LocalServer::pidPath() const
+{
+    return QDir(m_workDir).filePath(QStringLiteral("tt5srv.pid"));
+}
+
+namespace {
+
+/// The executable file name of a running process ("" if it isn't running).
+QString processImageName(qint64 pid)
+{
+#if defined(Q_OS_WIN)
+    HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, DWORD(pid));
+    if (!h)
+        return {};
+    wchar_t path[MAX_PATH] = {};
+    DWORD len = MAX_PATH;
+    DWORD code = 0;
+    QString name;
+    if (GetExitCodeProcess(h, &code) && code == STILL_ACTIVE && QueryFullProcessImageNameW(h, 0, path, &len))
+        name = QFileInfo(QString::fromWCharArray(path, int(len))).fileName();
+    CloseHandle(h);
+    return name;
+#else
+    return QFileInfo(QFile::symLinkTarget(QStringLiteral("/proc/%1/exe").arg(pid))).fileName();
+#endif
+}
+
+void terminateProcess(qint64 pid)
+{
+#if defined(Q_OS_WIN)
+    if (HANDLE h = OpenProcess(PROCESS_TERMINATE | SYNCHRONIZE, FALSE, DWORD(pid)))
+    {
+        TerminateProcess(h, 1);
+        WaitForSingleObject(h, 5000);
+        CloseHandle(h);
+    }
+#else
+    ::kill(pid_t(pid), SIGKILL);
+    for (int i = 0; i < 100 && ::kill(pid_t(pid), 0) == 0; ++i)
+        QThread::msleep(20);
+#endif
+}
+
+} // namespace
+
+void LocalServer::reclaimLeftover()
+{
+    QFile f(pidPath());
+    if (!f.open(QIODevice::ReadOnly))
+        return;
+    const qint64 pid = f.readAll().trimmed().toLongLong();
+    f.close();
+    QFile::remove(pidPath());
+    if (pid <= 0 || (m_proc && m_proc->processId() == pid))
+        return;
+    const QString name = processImageName(pid);
+    if (name.startsWith(QLatin1String("tt5srv"), Qt::CaseInsensitive))
+    {
+        appendLog(tr("Stopping a server left running by an earlier session.") + QChar('\n'));
+        terminateProcess(pid);
+    }
 }
 
 QString LocalServer::logPath() const
@@ -168,6 +241,7 @@ void LocalServer::start()
         return;
     }
     m_crashes.clear();
+    reclaimLeftover();
     launch();
 }
 
@@ -223,6 +297,9 @@ void LocalServer::probe()
         s.abort();
         m_probe.stop();
         appendLog(tr("The server is accepting connections.") + QChar('\n'));
+        QFile pid(pidPath());
+        if (pid.open(QIODevice::WriteOnly | QIODevice::Truncate))
+            pid.write(QByteArray::number(m_proc->processId()));
         setState(State::Running);
         return;
     }
@@ -254,6 +331,7 @@ void LocalServer::stop()
         m_proc->deleteLater();
         m_proc = nullptr;
     }
+    QFile::remove(pidPath());
     if (m_state != State::Failed)
         setState(State::Stopped);
 }
