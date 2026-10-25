@@ -21,8 +21,8 @@ out per milestone.
 - **1.1 — Upstream integration.** Pin `BearWare/TeamTalk5` at tag `v5.23`
   (submodule `external/TeamTalk5`), add `patches/TeamTalk5/` and
   `scripts/bootstrap.py`, and build **qtTeamTalk with Prism screen-reader
-  support** in CI with Qt 6.12, then launch-test it. First patch: link the
-  Professional `TeamTalk5Pro` library (BearWare's own Pro SDK change).
+  support** in CI with Qt 6.12, then launch-test it. With the Standard SDK the
+  client builds from BearWare's source **unchanged** (no patch needed yet).
   *Status: implemented; bootstrap tested locally (fresh run, re-run, CRLF
   checkout, conflicting edit); awaiting a green Windows CI run.*
 - **1.2 — `tt-core` wrapper.** Thin C++ wrapper over the SDK (init, connect,

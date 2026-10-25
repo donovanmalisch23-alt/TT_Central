@@ -21,24 +21,30 @@ populates:
 
 ```
 third_party/teamtalk-sdk/
-├── include/   TeamTalk.h, TeamTalkSrv.h     (fetched; git-ignored)
-├── lib/       TeamTalk5Pro.lib              (fetched; git-ignored)
-├── bin/       TeamTalk5Pro.dll              (fetched; git-ignored)
+├── include/   TeamTalk.h                    (fetched; git-ignored)
+├── lib/       TeamTalk5.lib                 (fetched; git-ignored)
+├── bin/       TeamTalk5.dll                 (fetched; git-ignored)
+├── server/    tt5srv.exe, tt5svc.exe        (fetched; git-ignored)
 └── License.txt  TeamTalk 5 SDK License       (fetched; git-ignored)
 ```
 
-Options:
+## Which edition: Standard
 
-```bat
-python scripts/fetch_sdk.py --edition standard    REM Standard edition (no server API)
-python scripts/fetch_sdk.py --version 5.23a --platform win64
-```
+TT Central uses the **Standard** edition (`TeamTalk5.dll`):
 
-- **Professional** (default) provides the client API (`TeamTalk.h`) **and** the
-  server API (`TeamTalkSrv.h`) used for local hosting (Phase 3), via
-  `TeamTalk5Pro.dll` / `TeamTalk5Pro.lib`.
-- **Standard** provides the client API only, via `TeamTalk5.dll` /
-  `TeamTalk5.lib`.
+- It is the edition the official TeamTalk client ships with, so the client
+  builds from BearWare's source **with no changes**.
+- Encrypted client connections work in both editions (per `TeamTalk.h`: "As of
+  TeamTalk v5.5 and onwards encryption is available in both TeamTalk SDK
+  Standard and Professional").
+- Its server, `tt5srv`, starts **without** a BearWare.dk WebLogin, which makes
+  local hosting simple. (The Professional server, `tt5prosrv`, refuses to run
+  until a BearWare.dk WebLogin authorized for it is entered.)
+- A Standard license key is the cheaper one, if you buy a key later.
+
+The Standard server does not support encryption. Encrypted *hosting* needs the
+Professional edition and a BearWare.dk WebLogin; `fetch_sdk.py --edition pro`
+downloads it.
 
 Pinned version: **v5.23a** (`TEAMTALK_VERSION "5.23.0.5209"`), matching the
 upstream client source pinned at tag `v5.23` (identical `TeamTalk.h`). CI runs
@@ -50,9 +56,10 @@ directly," just not stored in git.
 The TeamTalk 5 SDK License Agreement (fetched to
 `third_party/teamtalk-sdk/License.txt`) permits redistributing **end-user
 applications** that use the DLLs (with a License Key), **not** the SDK's files
-themselves. Committing the SDK DLL, import library, or headers to this public
-repository would redistribute the SDK and violate the agreement. Keeping them
-fetched and git-ignored keeps the public repo free of proprietary files.
+themselves. Committing the SDK DLL, import library, headers, or server binaries
+to this public repository would redistribute the SDK and violate the agreement.
+Keeping them fetched and git-ignored keeps the public repo free of proprietary
+files.
 
 (The qtTeamTalk *client source* is different: it is GPLv3, and the repo pins it
 as a submodule — see `ARCHITECTURE.md`.)
@@ -60,6 +67,5 @@ as a submodule — see `ARCHITECTURE.md`.)
 ## Licensing reminder
 
 Trial mode is fine for development and personal/community use. Shipping binaries
-widely, or hosting a server as a product, requires a purchased license
-(Professional Edition for the server). Keep all BearWare notices intact. Contact:
-contact@bearware.dk.
+widely requires a purchased License Key. Keep all BearWare notices intact.
+Contact: contact@bearware.dk.

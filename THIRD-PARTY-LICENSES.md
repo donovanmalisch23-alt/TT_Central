@@ -28,7 +28,7 @@ combined application, as built and distributed, is subject to the **GPLv3**
 ## TeamTalk 5 SDK — PROPRIETARY (© BearWare.dk)
 
 - **Files:** fetched into `third_party/teamtalk-sdk/` by `scripts/fetch_sdk.py`
-  (`TeamTalk5Pro.dll`, `TeamTalk5Pro.lib`, `TeamTalk.h`, `TeamTalkSrv.h`) and
+  (`TeamTalk5.dll`, `TeamTalk5.lib`, `TeamTalk.h`, and the `tt5srv` server) and
   staged into `external/TeamTalk5/Library/TeamTalk_DLL/` by
   `scripts/bootstrap.py`. **Git-ignored**; never stored in this repo.
 - **Terms:** TeamTalk 5 SDK License Agreement (fetched to
@@ -37,7 +37,8 @@ combined application, as built and distributed, is subject to the **GPLv3**
   - Runs in **trial mode** and disables after ~30 days **without** a purchased
     License Key.
   - Redistributing an end-user application that uses the SDK requires a License
-    Key. Building/running a server requires **Professional Edition**.
+    Key. The Standard server (`tt5srv`) is unencrypted; encrypted hosting needs
+    the **Professional Edition** and a BearWare.dk WebLogin.
   - Proprietary notices must not be removed.
 - **Pricing (confirm with BearWare):** Standard ~€990, Professional ~€1,600,
   excl. VAT. Contact: contact@bearware.dk.

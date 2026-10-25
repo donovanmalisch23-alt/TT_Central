@@ -103,9 +103,11 @@ binaries contain the SDK, and redistributing them needs a BearWare license key.
 ## Local server hosting (Phase 3 note)
 
 BearWare's `Server/TeamTalkServer` is SDK sample code under the proprietary
-license, so TT Central won't build it. Local hosting will be our own small
-host program written against the SDK's server API (`TeamTalkSrv.h`,
-Professional Edition), or BearWare's prebuilt server binary, decided in Phase 3.
+license, so TT Central won't build it. Instead, local hosting manages
+BearWare's **prebuilt Standard server** `tt5srv.exe` (fetched with the SDK):
+TT Central writes its `tt5srv.xml`, starts/stops the process, and shows its
+log. It needs no BearWare.dk WebLogin, but it is unencrypted; encrypted
+hosting needs the Professional `tt5prosrv` plus a WebLogin.
 
 ## Concurrency
 

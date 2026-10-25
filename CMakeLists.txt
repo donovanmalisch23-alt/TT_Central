@@ -34,8 +34,8 @@ if(NOT EXISTS "${TEAMTALK_SDK_DIR}/include/TeamTalk.h")
 endif()
 add_library(teamtalk::sdk SHARED IMPORTED)
 set_target_properties(teamtalk::sdk PROPERTIES
-    IMPORTED_LOCATION   "${TEAMTALK_SDK_DIR}/bin/TeamTalk5Pro.dll"
-    IMPORTED_IMPLIB     "${TEAMTALK_SDK_DIR}/lib/TeamTalk5Pro.lib"
+    IMPORTED_LOCATION   "${TEAMTALK_SDK_DIR}/bin/TeamTalk5.dll"
+    IMPORTED_IMPLIB     "${TEAMTALK_SDK_DIR}/lib/TeamTalk5.lib"
     INTERFACE_INCLUDE_DIRECTORIES "${TEAMTALK_SDK_DIR}/include")
 
 # --- SDK smoke test (milestone 1.0; no Qt needed) ---------------------------
@@ -43,7 +43,8 @@ add_subdirectory(src/sdkcheck)
 
 # --- TT Central client: BearWare's qtTeamTalk + our patches (milestone 1.1) --
 # Upstream source is the pinned submodule external/TeamTalk5 (GPLv3 client).
-# scripts/bootstrap.py stages the SDK into it and applies patches/TeamTalk5/.
+# scripts/bootstrap.py stages the Standard SDK (TeamTalk5.dll/.lib) into it and
+# applies patches/TeamTalk5/ (if any).
 if(WIN32)
     set(_ttc_client_default ON)
 else()
@@ -60,7 +61,7 @@ if(TTC_BUILD_CLIENT)
             "  git submodule update --init --depth 1\n"
             "  python scripts/bootstrap.py")
     endif()
-    if(NOT EXISTS "${TTC_UPSTREAM_DIR}/Library/TeamTalk_DLL/TeamTalk5Pro.lib")
+    if(NOT EXISTS "${TTC_UPSTREAM_DIR}/Library/TeamTalk_DLL/TeamTalk5.lib")
         message(FATAL_ERROR
             "The SDK is not staged for the client build. Run: python scripts/bootstrap.py")
     endif()

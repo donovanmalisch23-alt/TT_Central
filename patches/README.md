@@ -6,7 +6,7 @@ applied in order to the pinned submodule `external/TeamTalk5` (tag `v5.23`) by
 
 | Patch | What it does |
 |---|---|
-| `TeamTalk5/0001-Link-the-Professional-TeamTalk5Pro-SDK-library.patch` | Client links `TeamTalk5Pro` (the same change BearWare makes in its Pro SDK) |
+| *(none yet)* | With the Standard SDK the client builds from upstream unchanged. |
 
 ## Adding a patch
 
@@ -22,7 +22,7 @@ REM 2. Stage that state as a local baseline (inside the submodule only)
 git -C external/TeamTalk5 add -A
 
 REM 3. Make your change in external/TeamTalk5, then capture only that change
-git -C external/TeamTalk5 diff > patches\TeamTalk5\0002-Short-description.patch
+git -C external/TeamTalk5 diff > patches\TeamTalk5\0001-Short-description.patch
 
 REM 4. Unstage the baseline and check the whole series applies from pristine
 git -C external/TeamTalk5 reset -q
@@ -30,8 +30,7 @@ git -C external/TeamTalk5 checkout -- .
 python scripts\bootstrap.py
 ```
 
-Then add a short header to the top of the patch (subject, why, upstream tag),
-like `0001`. Keep each patch small and about one thing.
+Then add a short header to the top of the patch (subject, why, upstream tag). Keep each patch small and about one thing.
 
 ## Updating upstream
 

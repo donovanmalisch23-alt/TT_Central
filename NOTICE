@@ -22,14 +22,14 @@ COMPONENTS
    they modify.
 
 2. TeamTalk 5 SDK  —  (c) BearWare.dk  —  PROPRIETARY
-   The TeamTalk 5 SDK (TeamTalk5Pro.dll / TeamTalk5.dll, the import libraries,
-   and the C API headers) is proprietary software owned by BearWare.dk and is
+   The TeamTalk 5 SDK (TeamTalk5.dll, its import library, the C API headers,
+   and the prebuilt tt5srv/tt5svc server) is proprietary software owned by BearWare.dk and is
    governed by the TeamTalk 5 SDK License Agreement. It is NOT stored in this
    public repository; it is fetched at build time by scripts/fetch_sdk.py.
    Without a purchased License Key it runs in TRIAL MODE and disables itself
-   after ~30 days. Redistributing an end-user application built on it, and
-   building/hosting a TeamTalk server, require a purchased license
-   (Professional Edition for the server). Copyright, trademark, and proprietary
+   after ~30 days. Redistributing an end-user application built on it requires
+   a purchased license. Encrypted server hosting requires the Professional
+   Edition and a BearWare.dk WebLogin. Copyright, trademark, and proprietary
    notices in the SDK must not be removed.
 
 3. TeamTalk sound packs  —  (c) BearWare.dk

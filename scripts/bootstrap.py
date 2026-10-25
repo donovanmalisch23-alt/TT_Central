@@ -7,7 +7,7 @@ Steps (each is safe to re-run):
    TeamTalk5 repository at tag v5.23) is checked out as a git submodule.
 2. Fetch the proprietary TeamTalk 5 SDK with scripts/fetch_sdk.py (only when it
    is missing, or with --refresh-sdk). It is never committed to this repo.
-3. Copy the SDK runtime + import library into
+3. Copy the SDK runtime + import library (TeamTalk5.dll/.lib) into
    external/TeamTalk5/Library/TeamTalk_DLL, where the qtTeamTalk client build
    looks for them (upstream git-ignores *.dll and *.lib there).
 4. Check that the upstream TeamTalk.h and the SDK's TeamTalk.h are the same
@@ -34,7 +34,7 @@ UPSTREAM_DLL_DIR = UPSTREAM / "Library" / "TeamTalk_DLL"
 SDK_DIR = REPO_ROOT / "third_party" / "teamtalk-sdk"
 PATCH_DIR = REPO_ROOT / "patches" / "TeamTalk5"
 
-SDK_FILES = (("bin", "TeamTalk5Pro.dll"), ("lib", "TeamTalk5Pro.lib"))
+SDK_FILES = (("bin", "TeamTalk5.dll"), ("lib", "TeamTalk5.lib"))
 
 
 class BootstrapError(Exception):

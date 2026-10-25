@@ -15,9 +15,10 @@ python scripts/bootstrap.py          REM from the repo root
 
 After fetching (all git-ignored):
 
-- `include/TeamTalk.h`, `include/TeamTalkSrv.h` — C API + server API headers
-- `lib/TeamTalk5Pro.lib` — import library
-- `bin/TeamTalk5Pro.dll` — runtime library
+- `include/TeamTalk.h` — C API header
+- `lib/TeamTalk5.lib` — import library
+- `bin/TeamTalk5.dll` — runtime library
+- `server/tt5srv.exe`, `server/tt5svc.exe` — BearWare's TeamTalk server (console / service)
 - `License.txt` — the SDK License Agreement
 
 See [`../../docs/SDK.md`](../../docs/SDK.md) for editions, versions, and why the

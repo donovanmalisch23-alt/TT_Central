@@ -37,6 +37,7 @@ ui_*.h
 /third_party/teamtalk-sdk/lib/*.lib
 /third_party/teamtalk-sdk/bin/*.dll
 /third_party/teamtalk-sdk/License.txt
+/third_party/teamtalk-sdk/server/
 
 # Local config / secrets
 config.local.*

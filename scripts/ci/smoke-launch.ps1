@@ -2,7 +2,7 @@
 #
 # Starts the built client and checks that it is still running after a short
 # wait. This catches the failures that matter most at this stage: missing
-# runtime DLLs (Qt, TeamTalk5Pro), startup crashes, and header/DLL version
+# runtime DLLs (Qt, TeamTalk5), startup crashes, and header/DLL version
 # mismatches that abort before the main window appears.
 #
 # A modal dialog (first-run wizard, SDK trial notice) keeps the process alive,

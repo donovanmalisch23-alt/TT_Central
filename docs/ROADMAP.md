@@ -39,8 +39,8 @@ in progress.
 - Local server hosting: start/stop, config, accounts, channels, logs (our own
   host on the SDK server API, or BearWare's prebuilt server — see
   `ARCHITECTURE.md`).
-- Note: building/hosting a server needs Professional Edition — a licensing gate
-  for shipped distribution.
+- Hosting uses BearWare's Standard server `tt5srv` (no WebLogin needed;
+  unencrypted). Encrypted hosting needs Professional + a BearWare.dk WebLogin.
 
 ## Phase 4 — Media bot (native engine)
 
@@ -57,5 +57,5 @@ in progress.
 
 - Personal/community/trial use is unblocked now.
 - Before wide binary distribution or hosting a server as a shipped product,
-  obtain a TeamTalk license from BearWare (Professional for the server). See
+  obtain a TeamTalk license key from BearWare. See
   `../NOTICE`.
