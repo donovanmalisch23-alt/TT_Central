@@ -53,6 +53,7 @@ private:
     QList<QLocalSocket*> m_clients;
     QTimer m_statusThrottle;
     QTimer m_tick;
+    QStringList m_recentLog;   // replayed to TT Central when it connects
 };
 
 } // namespace ttc::media

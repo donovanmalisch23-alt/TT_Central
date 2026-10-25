@@ -9,6 +9,7 @@
 #include "ttc/media/botconfig.h"
 #include "ttc/media/controlserver.h"
 #include "ttc/media/mediabot.h"
+#include "ttc/unattended.h"
 
 #include <QCommandLineParser>
 #include <QCoreApplication>
@@ -107,6 +108,8 @@ int main(int argc, char* argv[])
     parser.process(app);
 
     qInstallMessageHandler(messageHandler);
+    if (qEnvironmentVariableIsSet("TTC_UNATTENDED"))
+        ttc::dismissSdkNoticesInBackground();   // tests: nobody can press OK
     if (parser.isSet(logOpt))
     {
         g_logFile = new QFile(parser.value(logOpt));
@@ -132,11 +135,16 @@ int main(int argc, char* argv[])
 
     const QString err = config.validationError();
     bool toolsOk = true;
+    QStringList toolProblems;
     auto report = [&](const char* name, const QString& path, bool required) {
         if (path.isEmpty())
         {
             if (required)
                 toolsOk = false;
+            toolProblems << QStringLiteral("%1 was not found%2; see Settings, Media bot, Helper programs.")
+                                .arg(QLatin1String(name),
+                                     required ? QStringLiteral(", so nothing can be played")
+                                              : QStringLiteral(" (some links may not work)"));
             qWarning().noquote() << QStringLiteral("%1 was not found%2. Run scripts/fetch_tools.py or set its path "
                                                    "in the media bot settings.")
                                         .arg(QLatin1String(name), required ? QString() : QStringLiteral(" (optional)"));
@@ -192,6 +200,10 @@ int main(int argc, char* argv[])
         }
     });
     watchdog.start(500);
+
+    // Also show missing helper programs in TT Central's Media bot window.
+    for (const QString& problem : std::as_const(toolProblems))
+        emit bot.logLine(problem);
 
     qInfo().noquote() << QStringLiteral("TT Central media bot %1 starting for %2 (search: %3; sources: %4).")
                              .arg(MediaBot::version(), config.displayName(), bot.sources()->service(),

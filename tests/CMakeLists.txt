@@ -66,3 +66,13 @@ target_compile_definitions(tst_integration_mediabot PRIVATE
     TTC_PCMGEN_PATH="$<TARGET_FILE:pcmgen>")
 set_tests_properties(tst_integration_mediabot PROPERTIES TIMEOUT 240 LABELS integration
     ENVIRONMENT "QTEST_FUNCTION_TIMEOUT=90000")
+
+# The client's controller running the real ttc-mediabot program.
+ttc_add_test(tst_integration_controller serverharness.h)
+target_link_libraries(tst_integration_controller PRIVATE ttc_client)
+add_dependencies(tst_integration_controller ttc-mediabot)
+target_compile_definitions(tst_integration_controller PRIVATE
+    TTC_SERVER_EXE_PATH="${TTC_SERVER_EXE}"
+    TTC_MEDIABOT_EXE="$<TARGET_FILE:ttc-mediabot>")
+set_tests_properties(tst_integration_controller PROPERTIES TIMEOUT 240 LABELS integration
+    ENVIRONMENT "QTEST_FUNCTION_TIMEOUT=120000")

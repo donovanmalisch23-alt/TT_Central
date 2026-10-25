@@ -61,6 +61,8 @@ public:
     QJsonObject status() const { return m_status; }
     QString logPath() const;
     QString botExecutable() const { return m_exe; }
+    /// The bot's process id while it runs (0 otherwise).
+    qint64 processId() const { return m_proc ? m_proc->processId() : 0; }
 
     void start();
     void stop();

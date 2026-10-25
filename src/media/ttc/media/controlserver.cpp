@@ -38,6 +38,9 @@ ControlServer::ControlServer(MediaBot* bot, QObject* parent)
     });
     m_tick.start();
     connect(m_bot, &MediaBot::logLine, this, [this](const QString& text) {
+        m_recentLog << text;
+        if (m_recentLog.size() > 50)
+            m_recentLog.removeFirst();
         broadcast({{QStringLiteral("type"), QStringLiteral("log")}, {QStringLiteral("text"), text}});
     });
 }
@@ -72,6 +75,8 @@ void ControlServer::onNewConnection()
             s->deleteLater();
         });
         send(s, {{QStringLiteral("type"), QStringLiteral("hello")}, {QStringLiteral("version"), MediaBot::version()}});
+        for (const QString& line : std::as_const(m_recentLog))
+            send(s, {{QStringLiteral("type"), QStringLiteral("log")}, {QStringLiteral("text"), line}});
         QJsonObject st = m_bot->status();
         st.insert(QStringLiteral("type"), QStringLiteral("status"));
         send(s, st);
