@@ -30,17 +30,20 @@ endif()
 # is git-ignored and never stored in this public repo. See docs/SDK.md.
 set(TEAMTALK_SDK_DIR "${CMAKE_SOURCE_DIR}/third_party/teamtalk-sdk")
 if(NOT EXISTS "${TEAMTALK_SDK_DIR}/include/TeamTalk.h")
-    message(WARNING
+    message(FATAL_ERROR
         "TeamTalk SDK not found under third_party/teamtalk-sdk/. "
         "Run: python scripts/fetch_sdk.py")
 endif()
-# add_library(teamtalk::sdk SHARED IMPORTED)
-# set_target_properties(teamtalk::sdk PROPERTIES
-#     IMPORTED_LOCATION   "${TEAMTALK_SDK_DIR}/bin/TeamTalk5Pro.dll"
-#     IMPORTED_IMPLIB     "${TEAMTALK_SDK_DIR}/lib/TeamTalk5Pro.lib"
-#     INTERFACE_INCLUDE_DIRECTORIES "${TEAMTALK_SDK_DIR}/include")
+add_library(teamtalk::sdk SHARED IMPORTED)
+set_target_properties(teamtalk::sdk PROPERTIES
+    IMPORTED_LOCATION   "${TEAMTALK_SDK_DIR}/bin/TeamTalk5Pro.dll"
+    IMPORTED_IMPLIB     "${TEAMTALK_SDK_DIR}/lib/TeamTalk5Pro.lib"
+    INTERFACE_INCLUDE_DIRECTORIES "${TEAMTALK_SDK_DIR}/include")
 
-# --- Modules (added per phase) ----------------------------------------------
+# --- Modules ----------------------------------------------------------------
+add_subdirectory(src/sdkcheck)   # ttc-sdkcheck: SDK smoke test (milestone 1.0)
+
+# Added per phase (see docs/ROADMAP.md):
 # add_subdirectory(src/core)     # tt-core    : SDK wrapper
 # add_subdirectory(src/notify)   # ttc-notify : sounds + TTS + toasts
 # add_subdirectory(src/monitor)  # ttc-monitor: background watchers
@@ -48,4 +51,4 @@ endif()
 # add_subdirectory(src/media)    # ttc-media  : native media engine
 # add_subdirectory(src/app)      # ttc-shell  : the Qt application
 
-message(STATUS "TT Central ${PROJECT_VERSION} — Phase 0 scaffolding.")
+message(STATUS "TT Central ${PROJECT_VERSION} — building ttc-sdkcheck.")

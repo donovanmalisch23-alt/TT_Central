@@ -21,12 +21,8 @@ jobs:
         with:
           lfs: true
 
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: "6.7.*"
-          arch: win64_msvc2019_64
-          modules: qtmultimedia
+      # Qt returns at milestone 1.1 (the client shell); the SDK smoke test
+      # (milestone 1.0) needs only the SDK + MSVC.
 
       - name: Fetch TeamTalk SDK (proprietary; trial mode, not committed)
         run: |
@@ -36,11 +32,8 @@ jobs:
       - name: Configure (CMake)
         run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64
 
-      # Enabled once module targets build:
-      # - name: Build
-      #   run: cmake --build build --config Release
-      # - name: Test
-      #   run: ctest --test-dir build -C Release --output-on-failure
+      - name: Build SDK smoke test
+        run: cmake --build build --config Release --target ttc-sdkcheck
 
-      - name: Scaffolding check
-        run: echo "TT Central Phase 0 scaffolding configured."
+      - name: Run SDK smoke test
+        run: ./build/src/sdkcheck/Release/ttc-sdkcheck.exe
