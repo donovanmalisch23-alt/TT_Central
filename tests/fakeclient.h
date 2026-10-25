@@ -7,8 +7,10 @@
 #include <QHash>
 #include <QList>
 #include <QQueue>
+#include <QSet>
 #include <QStringList>
 
+#include <atomic>
 #include <cstring>
 
 namespace ttc::test {
@@ -34,6 +36,7 @@ public:
     QHash<QString, int> channelPaths;  // path -> id
     QHash<int, User> users;
     QHash<int, QVector<int>> channelMembers;
+    QSet<int> channelsWithoutVoice;
 
     // --- what the test inspects ---------------------------------------
     int connects = 0;
@@ -43,6 +46,8 @@ public:
     QList<QPair<int, int>> unsubscribes;
     QList<SentText> sent;
     int nextCmd = 100;
+    std::atomic<int> audioBlocks{0};   // TT_InsertAudioBlock calls (any thread)
+    std::atomic<int> audioEnds{0};     // ... with NULL (end of input)
 
     bool connect(const QString&, int, int, bool) override { ++connects; return connectResult; }
     void disconnect() override { ++disconnects; myChannel = 0; }
@@ -83,6 +88,15 @@ public:
     {
         if (!users.contains(id)) return false;
         out = users.value(id);
+        return true;
+    }
+    bool channelHasAudioCodec(int id) override { return !channelsWithoutVoice.contains(id); }
+    bool insertAudioBlock(const AudioBlock* b) override
+    {
+        if (b)
+            ++audioBlocks;
+        else
+            ++audioEnds;
         return true;
     }
     bool nextMessage(TTMessage& msg, int) override

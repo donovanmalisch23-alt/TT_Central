@@ -18,6 +18,9 @@
 #include <functional>
 #include <memory>
 
+/// Marks progress in the test log, so a hang shows where it happened.
+#define TTC_STEP(text) qInfo("step: %s", text)
+
 namespace ttc::test {
 
 inline QString serverExe()
@@ -80,6 +83,7 @@ public:
 
     void stop()
     {
+        TTC_STEP("stopping tt5srv");
         if (m_proc && m_proc->state() != QProcess::NotRunning)
         {
             m_proc->kill();
@@ -124,6 +128,13 @@ class Driver
 {
 public:
     std::unique_ptr<TeamTalkClient> c = createSdkClient();
+
+    ~Driver()
+    {
+        TTC_STEP("closing a driver client");
+        c.reset();
+        TTC_STEP("driver client closed");
+    }
 
     bool waitFor(ClientEvent ev, int timeoutMs, const std::function<bool(const TTMessage&)>& pred = {},
                  TTMessage* out = nullptr)

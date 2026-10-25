@@ -27,9 +27,8 @@ ui_*.h
 *.vcxproj.user
 
 # Bundled tools fetched at build time (not committed)
-/tools/ffmpeg/
-/tools/deno/
-/tools/yt-dlp*
+# (scripts/fetch_tools.py: ffmpeg, yt-dlp, deno, plus its download cache)
+/tools/
 
 # TeamTalk 5 SDK — proprietary (c) BearWare.dk. NEVER commit to this public
 # repo; it is fetched into place by scripts/fetch_sdk.py. See docs/SDK.md.

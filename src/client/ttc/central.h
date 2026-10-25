@@ -16,6 +16,8 @@ class QWidget;
 
 namespace ttc {
 
+class MediaBotController;
+class MediaBotWindow;
 class MonitorManager;
 class MonitorsWindow;
 class NotificationCenter;
@@ -34,13 +36,14 @@ public:
     QMenu* menu() const { return m_menu; }
 
     MonitorManager* monitors() const { return m_monitors; }
+    MediaBotController* mediaBot() const { return m_media; }
     NotificationCenter* notifications() const { return m_notify; }
     QList<ShortcutInfo> shortcuts() const;
 
     /// The client logged in to a server (CLIENTEVENT_CMD_MYSELF_LOGGEDIN).
     void onClientLoggedIn();
 
-    enum Page { PageMonitors = 0, PageNotifications, PageSounds, PageAccessibility };
+    enum Page { PageMonitors = 0, PageNotifications, PageSounds, PageMediaBot, PageAccessibility };
 
     /// Build the Settings dialog (not shown yet).
     SettingsDialog* createSettingsDialog(int page, QWidget* parent);
@@ -57,6 +60,7 @@ public:
 
 public slots:
     void showMonitors();
+    void showMediaBot();
     void showSettings(int page = PageMonitors);
     void showAbout();
     void readLastNotification();
@@ -64,6 +68,7 @@ public slots:
 private:
     void buildMenu();
     void updateRunAction();
+    void updateMediaAction();
 
     ClientHooks m_hooks;
     QWidget* m_window = nullptr;
@@ -71,7 +76,10 @@ private:
     NotificationCenter* m_notify = nullptr;
     QMenu* m_menu = nullptr;
     QAction* m_runAction = nullptr;
+    QAction* m_mediaRunAction = nullptr;
+    MediaBotController* m_media = nullptr;
     QPointer<MonitorsWindow> m_monitorsWindow;
+    QPointer<MediaBotWindow> m_mediaWindow;
     bool m_autoStarted = false;
 };
 

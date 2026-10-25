@@ -125,6 +125,20 @@ public:
         return m_tt && TT_GetMessage(m_tt, &msg, &wait);
     }
 
+    bool channelHasAudioCodec(int channelId) override
+    {
+        Channel chan;
+        std::memset(&chan, 0, sizeof(chan));
+        if (!TT_GetChannel(m_tt, channelId, &chan))
+            return true; // assume playable rather than refuse on a lookup error
+        return chan.audiocodec.nCodec != NO_CODEC;
+    }
+
+    bool insertAudioBlock(const AudioBlock* block) override
+    {
+        return m_tt && TT_InsertAudioBlock(m_tt, block);
+    }
+
     TTInstance* instance() override { return m_tt; }
 
 private:

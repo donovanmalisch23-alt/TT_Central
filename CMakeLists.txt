@@ -52,9 +52,19 @@ set(TTC_SERVER_EXE "${TEAMTALK_SDK_DIR}/server/tt5srv${CMAKE_EXECUTABLE_SUFFIX}"
 
 # --- Qt ---------------------------------------------------------------------
 find_package(Qt6 6.4 REQUIRED COMPONENTS Core Network Xml Widgets)
+find_package(Threads REQUIRED)
+
+if(WIN32)
+    set(_ttc_client_default ON)
+else()
+    set(_ttc_client_default OFF)
+endif()
+option(TTC_BUILD_CLIENT "Build the TT Central client (qtTeamTalk-based; needs Qt 6)" ${_ttc_client_default})
+set(TTC_CLIENT_DIR "${CMAKE_SOURCE_DIR}/external/TeamTalk5/Client/qtTeamTalk")
 
 # --- TT Central libraries -------------------------------------------------
 add_subdirectory(src/core)     # ttc_core  : SDK wrapper, monitors, server config
+add_subdirectory(src/media)    # ttc_media + ttc-mediabot: the media player bot
 add_subdirectory(src/client)   # ttc_client: monitor manager, notifications, dialogs
 
 # --- SDK smoke test (milestone 1.0; no Qt needed) ---------------------------
@@ -64,12 +74,6 @@ add_subdirectory(src/sdkcheck)
 # Upstream source is the pinned submodule external/TeamTalk5 (GPLv3 client).
 # scripts/bootstrap.py stages the Standard SDK (TeamTalk5.dll/.lib) into it and
 # applies patches/TeamTalk5/ (if any).
-if(WIN32)
-    set(_ttc_client_default ON)
-else()
-    set(_ttc_client_default OFF)
-endif()
-option(TTC_BUILD_CLIENT "Build the TT Central client (qtTeamTalk-based; needs Qt 6)" ${_ttc_client_default})
 
 if(TTC_BUILD_CLIENT)
     set(TTC_UPSTREAM_DIR "${CMAKE_SOURCE_DIR}/external/TeamTalk5")
@@ -115,6 +119,11 @@ if(TTC_BUILD_CLIENT)
     set(TTCENTRAL_CLIENT_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/src/client/integration")
 
     add_subdirectory("${TTC_UPSTREAM_DIR}/Client/qtTeamTalk" "${CMAKE_BINARY_DIR}/upstream/qtTeamTalk")
+
+    # The client starts the media bot from its own folder (see src/media).
+    if(TARGET teamtalk5)
+        add_dependencies(teamtalk5 ttc-mediabot)
+    endif()
     message(STATUS "TT Central: building the client from external/TeamTalk5 (Qt ${Qt6_VERSION})")
 else()
     message(STATUS "TT Central: client build disabled (TTC_BUILD_CLIENT=OFF)")
@@ -126,9 +135,3 @@ if(TTC_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
 endif()
-
-# --- Our modules (added per phase; see docs/ROADMAP.md) ---------------------
-# add_subdirectory(src/notify)   # ttc-notify : sounds + TTS + toasts
-# add_subdirectory(src/monitor)  # ttc-monitor: background watchers
-# add_subdirectory(src/server)   # ttc-server : host + remote admin
-# add_subdirectory(src/media)    # ttc-media  : native media engine

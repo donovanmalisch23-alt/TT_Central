@@ -24,7 +24,9 @@ QString describe(QWidget* w)
 
 bool isAuditable(QWidget* w)
 {
-    if (!w->isVisibleTo(w->window()) || !w->isEnabled())
+    // Only what is on screen now: a closed combo-box popup or a hidden
+    // settings page is not something the user can reach.
+    if (!w->isVisible() || !w->isEnabled())
         return false;
     if (!(w->focusPolicy() & Qt::TabFocus))
         return false;

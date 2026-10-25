@@ -35,4 +35,29 @@ endif()
 # Against BearWare's real server (tt5srv), fetched with the SDK.
 ttc_add_test(tst_integration_monitor serverharness.h)
 target_compile_definitions(tst_integration_monitor PRIVATE TTC_SERVER_EXE_PATH="${TTC_SERVER_EXE}")
-set_tests_properties(tst_integration_monitor PROPERTIES TIMEOUT 180 LABELS integration)
+set_tests_properties(tst_integration_monitor PROPERTIES TIMEOUT 180 LABELS integration
+    ENVIRONMENT "QTEST_FUNCTION_TIMEOUT=60000")
+
+# --- media bot ----------------------------------------------------------------
+# pcmgen stands in for ffmpeg: it writes a sine tone as raw PCM.
+add_executable(pcmgen pcmgen.cpp)
+
+ttc_add_test(tst_media mediafakes.h)
+target_link_libraries(tst_media PRIVATE ttc_media)
+
+ttc_add_test(tst_audioengine)
+target_link_libraries(tst_audioengine PRIVATE ttc_media)
+add_dependencies(tst_audioengine pcmgen)
+target_compile_definitions(tst_audioengine PRIVATE
+    TTC_PCMGEN_PATH="$<TARGET_FILE:pcmgen>"
+    TTC_SOURCE_TOOLS_DIR="${PROJECT_SOURCE_DIR}/tools"
+    _USE_MATH_DEFINES)
+
+ttc_add_test(tst_integration_mediabot serverharness.h mediafakes.h)
+target_link_libraries(tst_integration_mediabot PRIVATE ttc_media)
+add_dependencies(tst_integration_mediabot pcmgen)
+target_compile_definitions(tst_integration_mediabot PRIVATE
+    TTC_SERVER_EXE_PATH="${TTC_SERVER_EXE}"
+    TTC_PCMGEN_PATH="$<TARGET_FILE:pcmgen>")
+set_tests_properties(tst_integration_mediabot PROPERTIES TIMEOUT 240 LABELS integration
+    ENVIRONMENT "QTEST_FUNCTION_TIMEOUT=90000")

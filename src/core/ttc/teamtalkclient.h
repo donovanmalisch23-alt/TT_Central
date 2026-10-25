@@ -48,6 +48,13 @@ public:
     /// Next queued SDK event, waiting up to waitMs. False when none.
     virtual bool nextMessage(TTMessage& msg, int waitMs) = 0;
 
+    /// Whether the channel carries voice (has an audio codec).
+    virtual bool channelHasAudioCodec(int channelId) { (void)channelId; return true; }
+
+    /// Transmit application audio as voice (TT_InsertAudioBlock); nullptr
+    /// ends the current audio input. May be called from any thread.
+    virtual bool insertAudioBlock(const AudioBlock* block) { (void)block; return false; }
+
     /// The underlying SDK instance (nullptr for fakes). Used by the media
     /// bot for audio injection.
     virtual TTInstance* instance() { return nullptr; }

@@ -4,13 +4,22 @@
 #include "fakeclient.h"
 #include "ttc/a11yaudit.h"
 #include "ttc/central.h"
+#include "ttc/mediabotcontroller.h"
+#include "ttc/mediabotpage.h"
+#include "ttc/mediabotwindow.h"
 #include "ttc/monitoreditdialog.h"
 #include "ttc/monitormanager.h"
 #include "ttc/monitorswindow.h"
 #include "ttc/notificationcenter.h"
 #include "ttc/settingsdialog.h"
 
+#include <QApplication>
+#include <QComboBox>
+#include <QJsonArray>
 #include <QLineEdit>
+#include <QListWidget>
+#include <QMessageBox>
+#include <QSpinBox>
 #include <QMainWindow>
 #include <QMenu>
 #include <QMenuBar>
@@ -235,10 +244,12 @@ private slots:
         for (QAction* a : central.menu()->actions())
             if (!a->isSeparator())
                 titles << a->text();
-        QCOMPARE(titles.size(), 5);
+        QCOMPARE(titles.size(), 7);
+        QVERIFY(titles.contains(QStringLiteral("Media &bot...")));
+        QVERIFY(titles.contains(QStringLiteral("Set up the media b&ot...")));
         QCOMPARE(central.menu()->title(), QStringLiteral("&TT Central"));
         QCOMPARE(central.menu()->actions().first()->shortcut(), QKeySequence(QStringLiteral("Ctrl+Shift+O")));
-        QCOMPARE(central.shortcuts().size(), 4);
+        QCOMPARE(central.shortcuts().size(), 5);
 
         QVERIFY(!central.monitors()->isRunning());
         central.onClientLoggedIn();
@@ -302,7 +313,7 @@ private slots:
         std::unique_ptr<SettingsDialog> settings(central.createSettingsDialog(0, &mw));
         settings->show();
         QVERIFY(QTest::qWaitForWindowExposed(settings.get()));
-        for (int page = 0; page < 4; ++page)
+        for (int page = 0; page <= Central::PageAccessibility; ++page)
         {
             settings->showPage(page);
             const QStringList problems = auditAccessibility(settings.get());
@@ -314,6 +325,105 @@ private slots:
         QVERIFY(QTest::qWaitForWindowExposed(&win));
         const QStringList problems = auditAccessibility(&win);
         QVERIFY2(problems.isEmpty(), qPrintable(problems.join(QLatin1Char('\n'))));
+    }
+
+    // --- Media bot (client side) -------------------------------------------
+    void mediaBotWindowShowsStatusAccessibly()
+    {
+        QTemporaryDir dir;
+        QSettings s(dir.filePath(QStringLiteral("m.ini")), QSettings::IniFormat);
+        MediaBotController bot(&s, dir.filePath(QStringLiteral("no-bot")));
+        MediaBotWindow win(&bot);
+        win.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&win));
+        QStringList problems = auditAccessibility(&win);
+        QVERIFY2(problems.isEmpty(), qPrintable(problems.join(QLatin1Char('\n'))));
+
+        auto* state = win.findChild<QLineEdit*>();
+        QVERIFY(state && state->text().contains(QStringLiteral("Not set up")));
+
+        QJsonObject cur{{QStringLiteral("label"), QStringLiteral("Band - Song [3:00]")},
+                        {QStringLiteral("duration"), 180.0}, {QStringLiteral("elapsed"), 65.0},
+                        {QStringLiteral("requestedBy"), QStringLiteral("Alice")}};
+        QJsonArray queue{QJsonObject{{QStringLiteral("label"), QStringLiteral("Next one")}},
+                         QJsonObject{{QStringLiteral("label"), QStringLiteral("Last one")},
+                                     {QStringLiteral("requestedBy"), QStringLiteral("Bob")}}};
+        win.applyStatus({{QStringLiteral("current"), cur}, {QStringLiteral("queue"), queue},
+                         {QStringLiteral("queueLength"), 3}, {QStringLiteral("paused"), true},
+                         {QStringLiteral("volume"), 70}, {QStringLiteral("maxVolume"), 150}});
+        const auto edits = win.findChildren<QLineEdit*>();
+        QStringList texts;
+        for (QLineEdit* e : edits)
+            texts << e->text();
+        QVERIFY2(texts.contains(QStringLiteral("Band - Song [3:00] (requested by Alice)")), qPrintable(texts.join(QStringLiteral(" | "))));
+        QVERIFY(texts.contains(QStringLiteral("1:05 / 3:00, paused")));
+        QListWidget* q = nullptr;
+        for (QListWidget* l : win.findChildren<QListWidget*>())
+            if (l->accessibleName() == QLatin1String("Queue"))
+                q = l;
+        QVERIFY(q);
+        QCOMPARE(q->count(), 3);
+        QCOMPARE(q->item(1)->text(), QStringLiteral("2. Last one (Bob)"));
+        QCOMPARE(q->item(2)->text(), QStringLiteral("...and 1 more"));
+        auto* vol = win.findChild<QSpinBox*>();
+        QCOMPARE(vol->value(), 70);
+        QCOMPARE(vol->maximum(), 150);
+        problems = auditAccessibility(&win);
+        QVERIFY2(problems.isEmpty(), qPrintable(problems.join(QLatin1Char('\n'))));
+    }
+
+    void mediaBotPageSavesAndValidates()
+    {
+        QTemporaryDir dir;
+        QSettings s(dir.filePath(QStringLiteral("m.ini")), QSettings::IniFormat);
+        MediaBotController bot(&s, dir.filePath(QStringLiteral("no-bot")));
+        SavedServer saved;
+        saved.name = QStringLiteral("Club");
+        saved.host = QStringLiteral("club.example.org");
+        saved.username = QStringLiteral("me");
+        MediaBotPage page(&bot, [saved] { return QList<SavedServer>{saved}; });
+        nameFormFields(&page);   // as the Settings dialog does
+        page.load();
+        QVERIFY(page.apply());                      // blank = not set up: fine
+        auto* import = page.findChild<QComboBox*>();
+        QVERIFY(import);
+        import->setCurrentIndex(1);
+        emit import->activated(1);
+        media::MediaBotConfig c = page.current();
+        QCOMPARE(c.host, QStringLiteral("club.example.org"));
+        QVERIFY(c.username.isEmpty());              // the bot gets its own account
+        // Partly filled in: apply refuses and says why.
+        QString why;
+        page.warn = [&](const QString& w) { why = w; };
+        QVERIFY(!page.apply());
+        QVERIFY(why.contains(QStringLiteral("username")));
+        for (QLineEdit* e : page.findChildren<QLineEdit*>())
+            if (e->accessibleName().contains(QStringLiteral("username"), Qt::CaseInsensitive))
+                e->setText(QStringLiteral("jukebox"));
+        QVERIFY(page.apply());
+        QCOMPARE(media::loadMediaBotConfig(s, false).username, QStringLiteral("jukebox"));
+        QCOMPARE(bot.config().host, QStringLiteral("club.example.org"));
+    }
+
+    void mediaBotControllerExplainsWhyItCannotStart()
+    {
+        QTemporaryDir dir;
+        QSettings s(dir.filePath(QStringLiteral("m.ini")), QSettings::IniFormat);
+        MediaBotController bot(&s, dir.filePath(QStringLiteral("no-bot")));
+        QVERIFY(!bot.isConfigured());
+        bot.start();
+        QCOMPARE(bot.state(), MediaBotController::State::Failed);
+        QVERIFY(bot.stateText().contains(QStringLiteral("server address")));
+        media::MediaBotConfig c;
+        c.host = QStringLiteral("example.org");
+        c.username = QStringLiteral("bot");
+        bot.setConfig(c);
+        bot.start();
+        QCOMPARE(bot.state(), MediaBotController::State::Failed);
+        QVERIFY(bot.stateText().contains(QStringLiteral("not found")));
+        QString reply;
+        bot.command(QStringLiteral("v"), [&](const QString& r) { reply = r; });
+        QVERIFY(reply.contains(QStringLiteral("not running")));
     }
 
     void auditCatchesUnnamedControls()

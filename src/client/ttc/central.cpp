@@ -2,6 +2,9 @@
 #include "ttc/central.h"
 
 #include "ttc/a11yaudit.h"
+#include "ttc/mediabotcontroller.h"
+#include "ttc/mediabotpage.h"
+#include "ttc/mediabotwindow.h"
 #include "ttc/monitoreditdialog.h"
 #include "ttc/monitormanager.h"
 #include "ttc/monitorswindow.h"
@@ -9,6 +12,8 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QDir>
+#include <QFileInfo>
 #include <QHash>
 #include <QMenuBar>
 #include <QKeySequence>
@@ -30,6 +35,7 @@ namespace {
 const QKeySequence kMonitorsKeys(QStringLiteral("Ctrl+Shift+O"));
 const QKeySequence kReadLastKeys(QStringLiteral("Ctrl+Shift+N"));
 const QKeySequence kSettingsKeys(QStringLiteral("Ctrl+Shift+P"));
+const QKeySequence kMediaKeys(QStringLiteral("Ctrl+Shift+J"));
 } // namespace
 
 Central::Central(ClientHooks hooks, QWidget* mainWindow)
@@ -44,10 +50,15 @@ Central::Central(ClientHooks hooks, QWidget* mainWindow)
     connect(m_monitors, &MonitorManager::event, m_notify, &NotificationCenter::post);
     connect(m_monitors, &MonitorManager::runningChanged, this, &Central::updateRunAction);
 
+    m_media = new MediaBotController(m_hooks.settings, {}, this);
+    connect(m_media, &MediaBotController::stateChanged, this, &Central::updateMediaAction);
+
     buildMenu();
 
     if (m_hooks.settings && loadStartPolicy(*m_hooks.settings) == MonitorStartPolicy::AtStartup)
         QTimer::singleShot(1500, m_monitors, &MonitorManager::startAll);
+    if (m_media->config().autoStart && m_media->isConfigured())
+        QTimer::singleShot(2000, m_media, &MediaBotController::start);
 }
 
 Central::~Central() = default;
@@ -74,6 +85,22 @@ void Central::buildMenu()
     updateRunAction();
 
     m_menu->addSeparator();
+    QAction* media = m_menu->addAction(tr("Media &bot..."));
+    media->setShortcut(kMediaKeys);
+    connect(media, &QAction::triggered, this, &Central::showMediaBot);
+
+    m_mediaRunAction = m_menu->addAction(QString());
+    connect(m_mediaRunAction, &QAction::triggered, this, [this] {
+        if (m_media->isRunning())
+            m_media->stop();
+        else if (m_media->isConfigured())
+            m_media->start();
+        else
+            showSettings(PageMediaBot);
+    });
+    updateMediaAction();
+
+    m_menu->addSeparator();
     QAction* settings = m_menu->addAction(tr("TT Central &settings..."));
     settings->setShortcut(kSettingsKeys);
     connect(settings, &QAction::triggered, this, [this] { showSettings(PageMonitors); });
@@ -88,6 +115,7 @@ QList<ShortcutInfo> Central::shortcuts() const
     return {
         {tr("Monitors and notifications"), kMonitorsKeys.toString(QKeySequence::NativeText)},
         {tr("Read last notification aloud"), kReadLastKeys.toString(QKeySequence::NativeText)},
+        {tr("Media bot window"), kMediaKeys.toString(QKeySequence::NativeText)},
         {tr("TT Central settings"), kSettingsKeys.toString(QKeySequence::NativeText)},
         {tr("TT Central menu"), tr("Alt+T")},
     };
@@ -97,6 +125,29 @@ void Central::updateRunAction()
 {
     if (m_runAction)
         m_runAction->setText(m_monitors->isRunning() ? tr("S&top all monitors") : tr("S&tart all monitors"));
+}
+
+void Central::updateMediaAction()
+{
+    if (!m_mediaRunAction)
+        return;
+    if (m_media->isRunning())
+        m_mediaRunAction->setText(tr("Stop the media b&ot"));
+    else
+        m_mediaRunAction->setText(m_media->isConfigured() ? tr("Start the media b&ot") : tr("Set up the media b&ot..."));
+}
+
+void Central::showMediaBot()
+{
+    if (!m_mediaWindow)
+    {
+        m_mediaWindow = new MediaBotWindow(m_media, m_window);
+        m_mediaWindow->setAttribute(Qt::WA_DeleteOnClose);
+        connect(m_mediaWindow, &MediaBotWindow::settingsRequested, this, [this] { showSettings(PageMediaBot); });
+    }
+    m_mediaWindow->show();
+    m_mediaWindow->raise();
+    m_mediaWindow->activateWindow();
 }
 
 void Central::onClientLoggedIn()
@@ -128,13 +179,18 @@ SettingsDialog* Central::createSettingsDialog(int page, QWidget* parent)
     pages << new MonitorsPage(m_monitors, m_hooks.settings, m_hooks.savedServers);
     pages << new NotificationsPage(m_notify, m_hooks.settings);
     pages << new SoundsPage(m_notify, m_hooks.openClientPreferences);
+    pages << new MediaBotPage(m_media, m_hooks.savedServers);
     pages << new AccessibilityPage(shortcuts(), m_hooks.openClientPreferences);
     return new SettingsDialog(pages, page, parent);
 }
 
 void Central::showSettings(int page)
 {
-    QWidget* parent = m_monitorsWindow && m_monitorsWindow->isVisible() ? static_cast<QWidget*>(m_monitorsWindow) : m_window;
+    QWidget* parent = m_window;
+    if (m_mediaWindow && m_mediaWindow->isVisible())
+        parent = m_mediaWindow;
+    else if (m_monitorsWindow && m_monitorsWindow->isVisible())
+        parent = m_monitorsWindow;
     std::unique_ptr<SettingsDialog> dlg(createSettingsDialog(page, parent));
     dlg->exec();
     if (m_hooks.settings)
@@ -198,6 +254,20 @@ Central::SelfTestResult Central::runSelfTest(QWidget* mainWindow, QMenuBar* menu
     }
     else
         fail(QStringLiteral("Monitors window did not open"));
+
+    showMediaBot();
+    if (m_mediaWindow && m_mediaWindow->isVisible())
+    {
+        pass(QStringLiteral("Media bot window opens"));
+        audit(QStringLiteral("Media bot window"), m_mediaWindow);
+        m_mediaWindow->close();
+    }
+    else
+        fail(QStringLiteral("Media bot window did not open"));
+    if (QFileInfo::exists(m_media->botExecutable()))
+        pass(QStringLiteral("media bot program found: %1").arg(QDir::toNativeSeparators(m_media->botExecutable())));
+    else
+        fail(QStringLiteral("media bot program missing: %1").arg(QDir::toNativeSeparators(m_media->botExecutable())));
 
     std::unique_ptr<SettingsDialog> settings(createSettingsDialog(PageMonitors, mainWindow));
     settings->show();

@@ -4,8 +4,10 @@
 #   1.0  ttc-sdkcheck   — links the TeamTalk SDK and prints its version
 #   1.1  TT Central client — BearWare's qtTeamTalk (pinned submodule) + our
 #        patches, with Prism screen-reader support; launch-tested.
-#   tests: unit tests + integration tests against a real tt5srv, and an
-#          in-app self-test (incl. accessibility audit) of TTCentral.exe.
+#   1.2  ttc-mediabot — the media player bot (native port of Simple TT Media)
+#   tests: unit tests, integration tests against a real tt5srv (monitors and
+#          the media bot), and an in-app self-test (incl. accessibility
+#          audit) of TTCentral.exe.
 #
 # The proprietary TeamTalk SDK is fetched at build time in trial mode and is
 # never committed. No build artifacts are uploaded, because redistributing
@@ -47,6 +49,16 @@ jobs:
         run: |
           python -m pip install py7zr
           python scripts/bootstrap.py
+
+      # ffmpeg, yt-dlp and Deno for the media bot (downloaded, never committed).
+      - name: Cache media tools
+        uses: actions/cache@v4
+        with:
+          path: tools/.cache
+          key: media-tools-win64-v1
+
+      - name: Fetch media tools
+        run: python scripts/fetch_tools.py
 
       - name: Configure (CMake)
         # Let CMake auto-detect whichever Visual Studio is installed.
