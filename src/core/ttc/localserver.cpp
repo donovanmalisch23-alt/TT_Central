@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "ttc/localserver.h"
 
+#include "ttc/childprocess.h"
+
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
@@ -184,6 +186,7 @@ void LocalServer::launch()
     m_proc = new QProcess(this);
     m_proc->setProcessChannelMode(QProcess::MergedChannels);
     m_proc->setWorkingDirectory(m_workDir);
+    limitInheritedHandles(m_proc);
     connect(m_proc, &QProcess::readyRead, this, [this] {
         appendLog(QString::fromLocal8Bit(m_proc->readAll()));
     });

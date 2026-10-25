@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "ttc/media/ytdlp.h"
 
+#include "ttc/childprocess.h"
+
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QPointer>
@@ -76,6 +78,7 @@ void YtDlpRunner::run(Job job)
     env.insert(QStringLiteral("PYTHONIOENCODING"), QStringLiteral("utf-8"));
     env.insert(QStringLiteral("PYTHONUTF8"), QStringLiteral("1"));
     proc->setProcessEnvironment(env);
+    limitInheritedHandles(proc);
     auto* timer = new QTimer(proc);
     timer->setSingleShot(true);
     auto done = std::make_shared<bool>(false);
@@ -133,6 +136,7 @@ void YtDlpRunner::update(std::function<void(bool, const QString&)> cb)
 {
     auto* proc = new QProcess(this);
     proc->setProcessChannelMode(QProcess::MergedChannels);
+    limitInheritedHandles(proc);
     auto called = std::make_shared<bool>(false);
     auto call = [proc, cb, called](bool ok, const QString& text) {
         if (*called)

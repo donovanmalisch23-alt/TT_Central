@@ -3,7 +3,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#include "ttc/childprocess.h"
 #include "ttc/serverconfig.h"
+#include "ttc/unattended.h"
 #include "ttc/teamtalkclient.h"
 
 #include <QCoreApplication>
@@ -22,6 +24,9 @@
 #define TTC_STEP(text) qInfo("step: %s", text)
 
 namespace ttc::test {
+
+/// Tests run unattended: press OK on the SDK's one-time trial notice.
+inline const bool kUnattended = (dismissSdkNoticesInBackground(), true);
 
 inline QString serverExe()
 {
@@ -99,6 +104,7 @@ private:
         m_proc = std::make_unique<QProcess>();
         m_proc->setProcessChannelMode(QProcess::MergedChannels);
         m_proc->setWorkingDirectory(m_dir.path());
+        limitInheritedHandles(m_proc.get());
         m_proc->start(serverExe(), {QStringLiteral("-nd"), QStringLiteral("-wd"), m_dir.path(),
                                     QStringLiteral("-ip"), QStringLiteral("127.0.0.1"),
                                     QStringLiteral("-tcpport"), QString::number(port),

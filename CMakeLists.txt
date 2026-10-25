@@ -12,7 +12,7 @@
 cmake_minimum_required(VERSION 3.21)
 
 project(TTCentral
-    VERSION 0.0.1
+    VERSION 1.0.0
     DESCRIPTION "Unified, accessible TeamTalk 5 client, server, monitors, and media bot for Windows"
     LANGUAGES CXX)
 

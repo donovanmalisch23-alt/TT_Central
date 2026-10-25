@@ -10,6 +10,7 @@
 #    define NOMINMAX
 #  endif
 #  include <windows.h>
+#  include <vector>
 #else
 #  include <cerrno>
 #  include <csignal>
@@ -116,17 +117,35 @@ bool PipeProcess::start(const QString& program, const QStringList& arguments, QS
     SetHandleInformation(m_native->errRead, HANDLE_FLAG_INHERIT, 0);
     HANDLE nul = CreateFileW(L"NUL", GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, &sa, OPEN_EXISTING, 0, nullptr);
 
-    STARTUPINFOW si{};
-    si.cb = sizeof(si);
-    si.dwFlags = STARTF_USESTDHANDLES;
-    si.hStdInput = nul;
-    si.hStdOutput = outWrite;
-    si.hStdError = errWrite;
+    // Pass the child only its own three handles: nothing else this process
+    // has open (network sockets, files) may leak into the decoder.
+    STARTUPINFOEXW si{};
+    si.StartupInfo.cb = sizeof(si);
+    si.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
+    si.StartupInfo.hStdInput = nul;
+    si.StartupInfo.hStdOutput = outWrite;
+    si.StartupInfo.hStdError = errWrite;
+    HANDLE inherit[3] = {nul, outWrite, errWrite};
+    SIZE_T attrSize = 0;
+    InitializeProcThreadAttributeList(nullptr, 1, 0, &attrSize);
+    std::vector<char> attrBuf(attrSize);
+    auto* attrs = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(attrBuf.data());
+    DWORD flags = CREATE_NO_WINDOW | CREATE_UNICODE_ENVIRONMENT;
+    const bool listed = nul != INVALID_HANDLE_VALUE && InitializeProcThreadAttributeList(attrs, 1, 0, &attrSize) &&
+                        UpdateProcThreadAttribute(attrs, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST, inherit,
+                                                  sizeof(inherit), nullptr, nullptr);
+    if (listed)
+    {
+        si.lpAttributeList = attrs;
+        flags |= EXTENDED_STARTUPINFO_PRESENT;
+    }
     PROCESS_INFORMATION pi{};
     std::wstring cmd = windowsCommandLine(program, arguments).toStdWString();
-    const BOOL ok = CreateProcessW(nullptr, cmd.data(), nullptr, nullptr, TRUE,
-                                   CREATE_NO_WINDOW | CREATE_UNICODE_ENVIRONMENT, nullptr, nullptr, &si, &pi);
+    const BOOL ok = CreateProcessW(nullptr, cmd.data(), nullptr, nullptr, TRUE, flags, nullptr, nullptr,
+                                   &si.StartupInfo, &pi);
     const QString err = ok ? QString() : lastErrorText();
+    if (listed)
+        DeleteProcThreadAttributeList(attrs);
     CloseHandle(outWrite);
     CloseHandle(errWrite);
     if (nul != INVALID_HANDLE_VALUE)

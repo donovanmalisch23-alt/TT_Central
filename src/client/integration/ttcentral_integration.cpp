@@ -7,6 +7,7 @@
 #include "ttc/central.h"
 #include "ttc/clienthooks.h"
 #include "ttc/monitorevent.h"
+#include "ttc/unattended.h"
 
 // qtTeamTalk
 #include "common.h"
@@ -153,6 +154,7 @@ void install(QMainWindow* mainWindow, QMenuBar* menuBar)
     const QString selftest = qEnvironmentVariable("TTC_SELFTEST");
     if (!selftest.isEmpty())
     {
+        ttc::dismissSdkNoticesInBackground();
         QTimer::singleShot(3000, mainWindow, [mainWindow, menuBar, selftest] {
             const ttc::Central::SelfTestResult r = g_central->runSelfTest(mainWindow, menuBar);
             const QString report = r.lines.join(QLatin1Char('\n')) + QLatin1Char('\n');

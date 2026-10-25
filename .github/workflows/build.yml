@@ -67,8 +67,10 @@ jobs:
       - name: Build
         run: cmake --build build --config Release --parallel
 
+      # Also activates the SDK's trial, pressing OK on its one-time notice
+      # (nobody is there to press it on a CI runner).
       - name: Run SDK smoke test
-        run: ./build/src/sdkcheck/Release/ttc-sdkcheck.exe
+        run: ./build/src/sdkcheck/Release/ttc-sdkcheck.exe --activate-trial
 
       # Unit tests plus integration tests against BearWare's real TeamTalk
       # server (tt5srv, fetched with the SDK), bound to 127.0.0.1.
@@ -79,9 +81,17 @@ jobs:
         if: failure()
         shell: pwsh
         run: |
+          # Stop anything a timed-out test left running, then read each log
+          # even if something still holds it open.
+          foreach ($n in 'tt5srv', 'pcmgen', 'ttc-mediabot', 'ffmpeg') { Stop-Process -Name $n -Force -ErrorAction SilentlyContinue }
           Get-ChildItem build/test-logs -Filter *.txt -ErrorAction SilentlyContinue | ForEach-Object {
             Write-Host "===== $($_.Name)"
-            Get-Content $_.FullName
+            try {
+              $fs = [System.IO.File]::Open($_.FullName, 'Open', 'Read', 'ReadWrite')
+              $reader = New-Object System.IO.StreamReader($fs)
+              Write-Host $reader.ReadToEnd()
+              $reader.Close()
+            } catch { Write-Host "  (could not read: $_)" }
           }
 
       # Inside the real client: menu placement, shortcut clashes, every window

@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "ttc/mediabotcontroller.h"
 
+#include "ttc/childprocess.h"
+
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
@@ -151,6 +153,7 @@ void MediaBotController::launch()
     m_proc = new QProcess(this);
     m_proc->setProcessChannelMode(QProcess::MergedChannels);
     m_proc->setWorkingDirectory(QFileInfo(m_exe).absolutePath());
+    limitInheritedHandles(m_proc);
     connect(m_proc, &QProcess::finished, this, &MediaBotController::onProcessFinished);
     connect(m_proc, &QProcess::errorOccurred, this, [this](QProcess::ProcessError e) {
         if (e == QProcess::FailedToStart)
