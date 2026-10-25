@@ -30,7 +30,9 @@ jobs:
           python scripts/fetch_sdk.py
 
       - name: Configure (CMake)
-        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+        # Let CMake auto-detect whichever Visual Studio is installed on the
+        # runner (avoids hardcoding a VS version that may not be present).
+        run: cmake -S . -B build -A x64
 
       - name: Build SDK smoke test
         run: cmake --build build --config Release --target ttc-sdkcheck
