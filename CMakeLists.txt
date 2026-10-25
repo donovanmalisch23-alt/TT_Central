@@ -26,17 +26,35 @@ endif()
 # --- TeamTalk 5 SDK (fetched, not committed) --------------------------------
 # Proprietary (c) BearWare.dk. Run `python scripts/bootstrap.py` first; the SDK
 # is git-ignored and never stored in this public repo. See docs/SDK.md.
-set(TEAMTALK_SDK_DIR "${CMAKE_SOURCE_DIR}/third_party/teamtalk-sdk")
+# (TEAMTALK_SDK_DIR may point elsewhere, e.g. a Linux SDK for local tests.)
+set(TEAMTALK_SDK_DIR "${CMAKE_SOURCE_DIR}/third_party/teamtalk-sdk" CACHE PATH
+    "TeamTalk 5 SDK directory (include/, lib/, bin/, server/)")
 if(NOT EXISTS "${TEAMTALK_SDK_DIR}/include/TeamTalk.h")
     message(FATAL_ERROR
-        "TeamTalk SDK not found under third_party/teamtalk-sdk/. "
+        "TeamTalk SDK not found under ${TEAMTALK_SDK_DIR}. "
         "Run: python scripts/bootstrap.py")
 endif()
 add_library(teamtalk::sdk SHARED IMPORTED)
+if(WIN32)
+    set_target_properties(teamtalk::sdk PROPERTIES
+        IMPORTED_LOCATION   "${TEAMTALK_SDK_DIR}/bin/TeamTalk5.dll"
+        IMPORTED_IMPLIB     "${TEAMTALK_SDK_DIR}/lib/TeamTalk5.lib")
+else()
+    set_target_properties(teamtalk::sdk PROPERTIES
+        IMPORTED_LOCATION   "${TEAMTALK_SDK_DIR}/lib/libTeamTalk5.so")
+endif()
 set_target_properties(teamtalk::sdk PROPERTIES
-    IMPORTED_LOCATION   "${TEAMTALK_SDK_DIR}/bin/TeamTalk5.dll"
-    IMPORTED_IMPLIB     "${TEAMTALK_SDK_DIR}/lib/TeamTalk5.lib"
     INTERFACE_INCLUDE_DIRECTORIES "${TEAMTALK_SDK_DIR}/include")
+
+# BearWare's prebuilt TeamTalk server, used for local hosting and tests.
+set(TTC_SERVER_EXE "${TEAMTALK_SDK_DIR}/server/tt5srv${CMAKE_EXECUTABLE_SUFFIX}" CACHE FILEPATH
+    "TeamTalk server executable (tt5srv)")
+
+# --- Qt ---------------------------------------------------------------------
+find_package(Qt6 6.4 REQUIRED COMPONENTS Core Network Xml)
+
+# --- TT Central core library (MIT) ------------------------------------------
+add_subdirectory(src/core)
 
 # --- SDK smoke test (milestone 1.0; no Qt needed) ---------------------------
 add_subdirectory(src/sdkcheck)
@@ -81,8 +99,14 @@ else()
     message(STATUS "TT Central: client build disabled (TTC_BUILD_CLIENT=OFF)")
 endif()
 
+# --- Tests -----------------------------------------------------------------
+option(TTC_BUILD_TESTS "Build TT Central's unit and integration tests" ON)
+if(TTC_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
+
 # --- Our modules (added per phase; see docs/ROADMAP.md) ---------------------
-# add_subdirectory(src/core)     # tt-core    : SDK wrapper
 # add_subdirectory(src/notify)   # ttc-notify : sounds + TTS + toasts
 # add_subdirectory(src/monitor)  # ttc-monitor: background watchers
 # add_subdirectory(src/server)   # ttc-server : host + remote admin
