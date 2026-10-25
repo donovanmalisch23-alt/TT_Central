@@ -31,45 +31,7 @@
 #include "TeamTalk.h"
 
 #if defined(_WIN32)
-namespace {
-
-std::atomic<int> g_dismissed{0};
-
-BOOL CALLBACK collectText(HWND child, LPARAM out)
-{
-    wchar_t cls[32] = {};
-    GetClassNameW(child, cls, 32);
-    if (wcscmp(cls, L"Static") == 0)
-    {
-        wchar_t text[512] = {};
-        GetWindowTextW(child, text, 512);
-        if (text[0])
-            std::wprintf(L"    %ls\n", text);
-    }
-    (void)out;
-    return TRUE;
-}
-
-BOOL CALLBACK dismissDialog(HWND hwnd, LPARAM)
-{
-    DWORD pid = 0;
-    GetWindowThreadProcessId(hwnd, &pid);
-    wchar_t cls[32] = {};
-    GetClassNameW(hwnd, cls, 32);
-    if (pid == GetCurrentProcessId() && wcscmp(cls, L"#32770") == 0 && IsWindowVisible(hwnd))
-    {
-        wchar_t title[256] = {};
-        GetWindowTextW(hwnd, title, 256);
-        std::wprintf(L"SDK notice dismissed: %ls\n", title);
-        EnumChildWindows(hwnd, collectText, 0);
-        std::fflush(stdout);
-        PostMessageW(hwnd, WM_COMMAND, IDOK, 0);
-        ++g_dismissed;
-    }
-    return TRUE;
-}
-
-} // namespace
+#  include "../core/ttc/sdknotice_win.h"
 #endif
 
 int main(int argc, char** argv)
@@ -89,23 +51,16 @@ int main(int argc, char** argv)
         return 0;
 
 #if defined(_WIN32)
-    std::atomic<bool> done{false};
-    std::thread watcher([&done] {
-        while (!done)
-        {
-            EnumWindows(dismissDialog, 0);
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
-        }
-    });
+    const int patched = ttc::win::suppressSdkNotices();
+    std::wprintf(L"Answering the SDK's notices automatically (%d imports redirected).\n", patched);
+    std::fflush(stdout);
 #endif
     TTInstance* tt = TT_InitTeamTalkPoll();
     const bool ok = tt != nullptr;
     if (tt)
         TT_CloseTeamTalk(tt);
 #if defined(_WIN32)
-    done = true;
-    watcher.join();
-    std::wprintf(L"Client instance %ls (%d notice(s) dismissed).\n", ok ? L"created" : L"FAILED", g_dismissed.load());
+    std::wprintf(L"Client instance %ls.\n", ok ? L"created" : L"FAILED");
 #else
     std::printf("Client instance %s.\n", ok ? "created" : "FAILED");
 #endif

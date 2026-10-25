@@ -12,6 +12,7 @@ add_library(ttc_core STATIC
     ttc/localserver.h        ttc/localserver.cpp
     ttc/childprocess.h       ttc/childprocess.cpp
     ttc/unattended.h         ttc/unattended.cpp
+    ttc/sdknotice_win.h
 )
 set_target_properties(ttc_core PROPERTIES AUTOMOC ON)
 target_include_directories(ttc_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

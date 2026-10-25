@@ -24,7 +24,7 @@ on:
 jobs:
   windows:
     runs-on: windows-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       # Patches must apply byte-exact; keep the repository's LF line endings.
       - name: Keep LF line endings
@@ -69,12 +69,19 @@ jobs:
 
       # Also activates the SDK's trial, pressing OK on its one-time notice
       # (nobody is there to press it on a CI runner).
+      # The second run shows the activation persists for every later process
+      # (the client's self-test creates its SDK instance before TT Central
+      # can answer anything).
       - name: Run SDK smoke test
-        run: ./build/src/sdkcheck/Release/ttc-sdkcheck.exe --activate-trial
+        timeout-minutes: 5
+        run: |
+          ./build/src/sdkcheck/Release/ttc-sdkcheck.exe --activate-trial
+          ./build/src/sdkcheck/Release/ttc-sdkcheck.exe --activate-trial
 
       # Unit tests plus integration tests against BearWare's real TeamTalk
       # server (tt5srv, fetched with the SDK), bound to 127.0.0.1.
       - name: Run tests
+        timeout-minutes: 25
         run: ctest --test-dir build -C Release --output-on-failure --timeout 300
 
       - name: Show test logs (on failure)
@@ -97,11 +104,13 @@ jobs:
       # Inside the real client: menu placement, shortcut clashes, every window
       # opens, and an accessibility audit of all TT Central controls.
       - name: Client self-test (in the real TTCentral.exe)
+        timeout-minutes: 5
         shell: pwsh
         run: ./scripts/ci/selftest.ps1
 
       # Portable zip + installer, each tested with a clean PATH. Not uploaded:
       # the packages contain the proprietary TeamTalk SDK.
       - name: Package and test the packages
+        timeout-minutes: 20
         shell: pwsh
         run: ./scripts/ci/package-test.ps1
