@@ -13,6 +13,7 @@
 #endif
 
 #include <cstdio>
+#include <cwchar>  // std::wprintf (wide-char output used on Windows)
 
 #include "TeamTalk.h"
 
