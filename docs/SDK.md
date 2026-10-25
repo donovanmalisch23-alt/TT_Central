@@ -69,3 +69,16 @@ as a submodule — see `ARCHITECTURE.md`.)
 Trial mode is fine for development and personal/community use. Shipping binaries
 widely requires a purchased License Key. Keep all BearWare notices intact.
 Contact: contact@bearware.dk.
+
+## The trial notice on Windows
+
+On Windows the trial SDK shows a one-time message box, "Activating TeamTalk
+SDK Trial", the first time a client instance is created on a computer, and
+then records the activation in the registry (`HKCU\Software\BearWare.dk`).
+People running TT Central simply choose OK.
+
+Unattended machines have nobody to press OK, so the box would block every
+test that creates a client. CI therefore runs
+`ttc-sdkcheck --activate-trial` before the tests: it creates one instance,
+presses OK and prints the notice. Tests and the CI self-test also press it
+if it appears (`ttc::dismissSdkNoticesInBackground()`, used only there).

@@ -48,7 +48,9 @@ is in the **TT Central** menu (Alt+T), just before Help.
 
 > **About the TeamTalk SDK.** TeamTalk itself is made by BearWare.dk. Without
 > a TeamTalk license key, the TeamTalk SDK that TT Central uses runs in trial
-> mode. See [Licenses](#licenses).
+> mode. The first time TT Central starts on a computer, the SDK shows a
+> message, "Activating TeamTalk SDK Trial", saying the trial is active for 30
+> days; choose OK. See [Licenses](#licenses).
 
 ## Keyboard shortcuts
 
