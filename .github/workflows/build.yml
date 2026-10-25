@@ -63,6 +63,15 @@ jobs:
       - name: Run tests
         run: ctest --test-dir build -C Release --output-on-failure --timeout 300
 
+      - name: Show test logs (on failure)
+        if: failure()
+        shell: pwsh
+        run: |
+          Get-ChildItem build/test-logs -Filter *.txt -ErrorAction SilentlyContinue | ForEach-Object {
+            Write-Host "===== $($_.Name)"
+            Get-Content $_.FullName
+          }
+
       # Inside the real client: menu placement, shortcut clashes, every window
       # opens, and an accessibility audit of all TT Central controls.
       - name: Client self-test (in the real TTCentral.exe)

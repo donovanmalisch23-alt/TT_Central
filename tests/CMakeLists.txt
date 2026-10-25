@@ -1,6 +1,11 @@
 # TT Central tests (Qt Test). Run with: ctest --test-dir build -C Release
 find_package(Qt6 REQUIRED COMPONENTS Test)
 
+# Each test also writes its Qt Test log to build/test-logs/<name>.txt, so CI
+# can show exactly which check failed even if a test hangs or crashes.
+set(TTC_TEST_LOG_DIR "${CMAKE_BINARY_DIR}/test-logs")
+file(MAKE_DIRECTORY "${TTC_TEST_LOG_DIR}")
+
 function(ttc_add_test name)
     add_executable(${name} ${name}.cpp ${ARGN})
     set_target_properties(${name} PROPERTIES AUTOMOC ON)
@@ -16,7 +21,7 @@ function(ttc_add_test name)
                 "$<TARGET_PROPERTY:teamtalk::sdk,IMPORTED_LOCATION>" "$<TARGET_FILE_DIR:${name}>"
             VERBATIM)
     endif()
-    add_test(NAME ${name} COMMAND ${name})
+    add_test(NAME ${name} COMMAND ${name} -o "${TTC_TEST_LOG_DIR}/${name}.txt,txt" -o "-,txt")
 endfunction()
 
 ttc_add_test(tst_core fakeclient.h)
