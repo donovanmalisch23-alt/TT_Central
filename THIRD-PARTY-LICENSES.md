@@ -1,9 +1,9 @@
 # Third-party licenses
 
-TT Central's own new code is MIT-licensed (see `LICENSE`). The TT Central
-**client application** is built from BearWare's GPLv3 qtTeamTalk, so the
-combined application, as built and distributed, is subject to the **GPLv3**
-(`LICENSES/GPL-3.0.txt`). The components below keep their own terms.
+TT Central is licensed under the **GNU GPL, version 3 or later** (see
+[`LICENSE`](LICENSE)), with an additional permission (GPLv3 section 7) to link
+the proprietary TeamTalk 5 SDK (see [`NOTICE`](NOTICE)). The components below
+keep their own terms.
 
 | Component | License | How it gets into the build |
 |---|---|---|

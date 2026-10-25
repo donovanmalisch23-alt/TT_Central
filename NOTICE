@@ -3,15 +3,29 @@ Copyright (c) 2026 TT Central contributors
 
 LICENSING AT A GLANCE
 
-- TT Central's own new source files (src/, scripts/, build files, docs) are
-  licensed under the MIT License (see LICENSE).
-- The TT Central client application is built from BearWare's qtTeamTalk, which
-  is licensed under the GNU General Public License, version 3 or later
-  (GPLv3). TT Central's patches to it (patches/TeamTalk5/) are GPLv3, and the
-  combined TT Central application, as built and distributed, is subject to the
-  GPLv3 (see LICENSES/GPL-3.0.txt). MIT-licensed code is GPL-compatible and may
-  be combined into it.
-- The TeamTalk 5 SDK is proprietary and is never committed to this repository.
+- All of TT Central is free software, licensed under the GNU General Public
+  License, version 3 or (at your option) any later version (GPL-3.0-or-later).
+  The full text is in LICENSE. This covers TT Central's own source files
+  (src/, tests/, scripts/, build files, docs) and its patches to BearWare's
+  qtTeamTalk (patches/TeamTalk5/). The TT Central client application, built
+  from qtTeamTalk (itself GPLv3) plus those patches, is GPLv3 as a whole.
+- The TeamTalk 5 SDK is proprietary and is never committed to this
+  repository (see "Additional permission" below and component 2).
+
+ADDITIONAL PERMISSION UNDER GNU GPL VERSION 3 SECTION 7
+
+If you modify TT Central, or any covered work, by linking or combining it with
+the TeamTalk 5 SDK by BearWare.dk (or a modified version of that library),
+containing parts covered by the terms of the TeamTalk 5 SDK License Agreement,
+the licensors of TT Central grant you additional permission to convey the
+resulting work. Corresponding Source for a non-source form of such a
+combination shall not include the source code for the parts of the TeamTalk 5
+SDK used, but shall include the source code for the parts of TT Central used.
+
+This permission applies to the files whose copyright is held by the TT Central
+contributors. Files from BearWare's qtTeamTalk remain under BearWare's own
+GPLv3 grant; BearWare publishes qtTeamTalk specifically to be linked with its
+TeamTalk 5 SDK.
 
 COMPONENTS
 
@@ -52,7 +66,8 @@ COMPONENTS
 GPLv3 AND THE PROPRIETARY SDK
 
 BearWare publishes qtTeamTalk under the GPLv3 and designs it to link the
-proprietary TeamTalk SDK; TT Central relies on that same arrangement. When
+proprietary TeamTalk SDK; TT Central relies on that same arrangement, and adds
+the section 7 permission above for its own code. When
 obtaining a TeamTalk license key, confirm with BearWare that distributing a
 modified qtTeamTalk linked against the SDK is permitted. This notice is not
 legal advice.

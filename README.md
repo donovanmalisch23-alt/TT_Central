@@ -3,7 +3,7 @@
 > A portable Windows app that unifies the TeamTalk 5 client, a local & remote
 > server manager, background server/channel monitors with notifications, and a
 > built-in media-player bot into one accessible, screen-reader-friendly program.
-> Open-source (MIT); built on the TeamTalk 5 SDK.
+> Free software (GPLv3); built on the TeamTalk 5 SDK.
 
 TT Central brings the whole TeamTalk 5 experience together on Windows. Connect
 and talk as a client, host your own server and administer remote ones, run
@@ -74,17 +74,18 @@ cmake --build build --config Release
 `bootstrap.py` fetches the proprietary TeamTalk SDK (never stored in this repo),
 stages it for the client build, and applies our patches to the pinned upstream
 source. The client is built to
-`external\TeamTalk5\Client\qtTeamTalk\TeamTalk5.exe`, with its Qt runtime in the
+`external\TeamTalk5\Client\qtTeamTalk\TTCentral.exe`, with its Qt runtime in the
 `windeployqt` folder next to it. See [`docs/SDK.md`](docs/SDK.md),
 [`docs/PHASE1.md`](docs/PHASE1.md), and
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Licensing
 
-- TT Central's **own new code is MIT-licensed** (see [`LICENSE`](LICENSE)).
-- The **client application is built from BearWare's qtTeamTalk, which is GPLv3**.
-  Our patches to it are GPLv3, and the combined application is distributed
-  under the **GPLv3** ([`LICENSES/GPL-3.0.txt`](LICENSES/GPL-3.0.txt)).
+- TT Central is free software under the **GNU GPL, version 3 or later** (see
+  [`LICENSE`](LICENSE)). That covers our own code, our patches to BearWare's
+  qtTeamTalk (itself GPLv3), and the client application built from them.
+- Our code carries an additional permission (GPLv3 section 7) to link the
+  proprietary TeamTalk 5 SDK; see [`NOTICE`](NOTICE).
 - It links the **proprietary TeamTalk 5 SDK** (© BearWare.dk), which is fetched at
   build time (never committed to this public repo) and runs in **trial mode**
   without a purchased license key. Distributing binaries widely, or hosting a

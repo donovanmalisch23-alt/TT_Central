@@ -1,7 +1,7 @@
 # src/ — module overview
 
-TT Central is organized into separable modules so that as much as possible ships
-under MIT and the proprietary TeamTalk dependency stays isolated. See
+TT Central is organized into separable modules so that the proprietary TeamTalk
+dependency stays isolated. See
 [`../docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md).
 
 | Dir | Module | Responsibility | Phase |

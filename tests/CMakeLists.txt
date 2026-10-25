@@ -21,6 +21,11 @@ endfunction()
 
 ttc_add_test(tst_core fakeclient.h)
 ttc_add_test(tst_monitorsession fakeclient.h)
+ttc_add_test(tst_client fakeclient.h)
+target_link_libraries(tst_client PRIVATE ttc_client)
+if(NOT WIN32)
+    set_tests_properties(tst_client PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+endif()
 
 # Against BearWare's real server (tt5srv), fetched with the SDK.
 ttc_add_test(tst_integration_monitor serverharness.h)

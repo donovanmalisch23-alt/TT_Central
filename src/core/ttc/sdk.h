@@ -1,5 +1,5 @@
 // TT Central — thin helpers around the TeamTalk 5 SDK C API.
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 //
 // The TeamTalk SDK uses TTCHAR strings: UTF-16 (WCHAR) on Windows and UTF-8
 // (char) elsewhere. Everything that crosses the SDK boundary goes through the

@@ -1,5 +1,5 @@
 // TT Central tests — a scripted TeamTalkClient for unit tests.
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 #include "ttc/teamtalkclient.h"

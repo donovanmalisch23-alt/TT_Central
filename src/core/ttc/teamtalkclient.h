@@ -1,5 +1,5 @@
 // TT Central — client abstraction over one TeamTalk SDK instance.
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 //
 // Monitors and the media bot each own one TeamTalkClient. The real
 // implementation (createSdkClient) wraps a polled TTInstance; unit tests use

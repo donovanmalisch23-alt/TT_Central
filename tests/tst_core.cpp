@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Unit tests for TT Central's core helpers: SDK strings, text reassembly,
 // monitor configuration and local server configuration.
 #include "fakeclient.h"
@@ -36,9 +36,9 @@ private slots:
 
         // An emoji (surrogate pair / 4 UTF-8 bytes) is never cut in half.
         const QString e = QStringLiteral("ab\U0001F3B5\U0001F3B5");
-        TTCHAR small[6];
-        copyToTT(e, small, 6);
-        const QString got = fromTT(small);
+        TTCHAR tiny[6]; // (not "small": that is a macro on Windows)
+        copyToTT(e, tiny, 6);
+        const QString got = fromTT(tiny);
         QVERIFY(e.startsWith(got));
         QVERIFY(got.isEmpty() || !got.back().isHighSurrogate());
     }
@@ -117,6 +117,15 @@ private slots:
         c.tcpPort = 70000;
         QVERIFY(!c.validationError().isEmpty());
         QVERIFY(oneLoginPerIpNote().contains(QStringLiteral("one login per IP address")));
+    }
+
+    void normalizesChannelPaths()
+    {
+        QCOMPARE(normalizeChannelPath(QString()), QStringLiteral("/"));
+        QCOMPARE(normalizeChannelPath(QStringLiteral("/")), QStringLiteral("/"));
+        QCOMPARE(normalizeChannelPath(QStringLiteral("Lobby")), QStringLiteral("/Lobby/"));
+        QCOMPARE(normalizeChannelPath(QStringLiteral("/Lobby")), QStringLiteral("/Lobby/"));
+        QCOMPARE(normalizeChannelPath(QStringLiteral(" /Music//Jazz/ ")), QStringLiteral("/Music/Jazz/"));
     }
 
     void describesEventsWithServerFirst()

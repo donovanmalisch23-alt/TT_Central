@@ -26,7 +26,7 @@ out per milestone.
   *Status: implemented; bootstrap tested locally (fresh run, re-run, CRLF
   checkout, conflicting edit); awaiting a green Windows CI run.*
 - **1.2 — `tt-core` wrapper.** Thin C++ wrapper over the SDK (init, connect,
-  login, join, event pump) with unit tests. MIT, separable.
+  login, join, event pump) with unit tests. GPLv3, separable.
 - **1.3 — TT Central shell.** Main window + panel framework hosting the client
   view; rebrand. Preserve qtTeamTalk accessibility (first NVDA pass).
 - **1.4 — Client parity.** Voice, text, channels, file transfer working end to

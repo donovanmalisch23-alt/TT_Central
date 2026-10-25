@@ -4,7 +4,8 @@
 #   1.0  ttc-sdkcheck   — links the TeamTalk SDK and prints its version
 #   1.1  TT Central client — BearWare's qtTeamTalk (pinned submodule) + our
 #        patches, with Prism screen-reader support; launch-tested.
-#   tests: unit tests + integration tests against a real tt5srv.
+#   tests: unit tests + integration tests against a real tt5srv, and an
+#          in-app self-test (incl. accessibility audit) of TTCentral.exe.
 #
 # The proprietary TeamTalk SDK is fetched at build time in trial mode and is
 # never committed. No build artifacts are uploaded, because redistributing
@@ -62,6 +63,8 @@ jobs:
       - name: Run tests
         run: ctest --test-dir build -C Release --output-on-failure --timeout 300
 
-      - name: Client launch smoke test
+      # Inside the real client: menu placement, shortcut clashes, every window
+      # opens, and an accessibility audit of all TT Central controls.
+      - name: Client self-test (in the real TTCentral.exe)
         shell: pwsh
-        run: ./scripts/ci/smoke-launch.ps1
+        run: ./scripts/ci/selftest.ps1

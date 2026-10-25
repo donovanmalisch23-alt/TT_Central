@@ -6,7 +6,7 @@ applied in order to the pinned submodule `external/TeamTalk5` (tag `v5.23`) by
 
 | Patch | What it does |
 |---|---|
-| *(none yet)* | With the Standard SDK the client builds from upstream unchanged. |
+| `0001-TT-Central-branding-and-integration-hooks.patch` | Brands the client as TT Central (title, settings file `TTCentral.ini`, executable `TTCentral.exe`, upstream links kept for TeamTalk help), turns off BearWare's update check, and adds three small hooks: compile in `src/client/integration`, install the TT Central menu after the main window is built, and pass each client event to TT Central. |
 
 ## Adding a patch
 

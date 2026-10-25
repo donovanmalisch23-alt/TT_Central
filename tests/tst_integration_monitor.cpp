@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 // Integration tests: a real TT Central monitor against BearWare's real
 // TeamTalk server (tt5srv), with a second real client acting as a user.
 #include "serverharness.h"

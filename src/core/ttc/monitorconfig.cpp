@@ -1,8 +1,9 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "ttc/monitorconfig.h"
 
 #include <QCoreApplication>
 #include <QSettings>
+#include <QStringList>
 #include <QUuid>
 
 namespace ttc {
@@ -51,6 +52,18 @@ bool MonitorConfig::operator==(const MonitorConfig& o) const
            notifyChannelMessages == o.notifyChannelMessages && notifyBroadcasts == o.notifyBroadcasts &&
            notifyConnection == o.notifyConnection && ignoreOwnAccount == o.ignoreOwnAccount &&
            receiveAudio == o.receiveAudio;
+}
+
+QString normalizeChannelPath(const QString& path)
+{
+    QStringList parts;
+    const QStringList raw = path.split(QLatin1Char('/'));
+    for (const QString& p : raw)
+        if (!p.trimmed().isEmpty())
+            parts << p.trimmed();
+    if (parts.isEmpty())
+        return QStringLiteral("/");
+    return QLatin1Char('/') + parts.join(QLatin1Char('/')) + QLatin1Char('/');
 }
 
 QString oneLoginPerIpNote()

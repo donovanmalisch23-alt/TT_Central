@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "ttc/monitorsession.h"
 
 #include <QCoreApplication>
@@ -188,9 +188,9 @@ void MonitorSession::onLoginComplete()
     m_client->changeStatus(0, m_config.statusMessage);
     setState(State::Joining);
 
-    const QString path = m_config.channelPath.trimmed();
-    int chan = (path.isEmpty() || path == QLatin1String("/")) ? m_client->rootChannelId()
-                                                               : m_client->channelIdFromPath(path);
+    const QString path = normalizeChannelPath(m_config.channelPath);
+    int chan = (path == QLatin1String("/")) ? m_client->rootChannelId()
+                                            : m_client->channelIdFromPath(path);
     QString password = m_config.channelPassword;
     if (chan <= 0)
     {

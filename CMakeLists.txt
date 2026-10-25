@@ -51,10 +51,11 @@ set(TTC_SERVER_EXE "${TEAMTALK_SDK_DIR}/server/tt5srv${CMAKE_EXECUTABLE_SUFFIX}"
     "TeamTalk server executable (tt5srv)")
 
 # --- Qt ---------------------------------------------------------------------
-find_package(Qt6 6.4 REQUIRED COMPONENTS Core Network Xml)
+find_package(Qt6 6.4 REQUIRED COMPONENTS Core Network Xml Widgets)
 
-# --- TT Central core library (MIT) ------------------------------------------
-add_subdirectory(src/core)
+# --- TT Central libraries -------------------------------------------------
+add_subdirectory(src/core)     # ttc_core  : SDK wrapper, monitors, server config
+add_subdirectory(src/client)   # ttc_client: monitor manager, notifications, dialogs
 
 # --- SDK smoke test (milestone 1.0; no Qt needed) ---------------------------
 add_subdirectory(src/sdkcheck)
@@ -79,7 +80,12 @@ if(TTC_BUILD_CLIENT)
             "  git submodule update --init --depth 1\n"
             "  python scripts/bootstrap.py")
     endif()
-    if(NOT EXISTS "${TTC_UPSTREAM_DIR}/Library/TeamTalk_DLL/TeamTalk5.lib")
+    if(WIN32)
+        set(_ttc_staged "${TTC_UPSTREAM_DIR}/Library/TeamTalk_DLL/TeamTalk5.lib")
+    else()
+        set(_ttc_staged "${TTC_UPSTREAM_DIR}/Library/TeamTalk_DLL/libTeamTalk5.so")
+    endif()
+    if(NOT EXISTS "${_ttc_staged}")
         message(FATAL_ERROR
             "The SDK is not staged for the client build. Run: python scripts/bootstrap.py")
     endif()
@@ -87,11 +93,26 @@ if(TTC_BUILD_CLIENT)
     # Fail early and clearly if Qt is missing (qtTeamTalk itself would just
     # skip silently). TextToSpeech requires Qt 6.4+.
     find_package(Qt6 6.4 REQUIRED COMPONENTS Widgets Xml Network Multimedia TextToSpeech)
+    if(NOT WIN32)
+        find_package(Qt6 REQUIRED COMPONENTS DBus)  # qtTeamTalk links Qt6::DBus on Linux
+    endif()
 
     # Prism: screen-reader output (NVDA, JAWS, SAPI and more). Accessibility is
-    # a first-class requirement, so it is always built in.
-    set(BUILD_TEAMTALK_CLIENT_PRISM ON)
-    add_subdirectory("${TTC_UPSTREAM_DIR}/Client/Prism" "${CMAKE_BINARY_DIR}/upstream/Prism")
+    # a first-class requirement, so it is on by default (OFF only for local
+    # development builds on machines without its dependencies).
+    option(TTC_WITH_PRISM "Build the client with Prism screen-reader support" ON)
+    set(BUILD_TEAMTALK_CLIENT_PRISM ${TTC_WITH_PRISM})
+    if(TTC_WITH_PRISM)
+        add_subdirectory("${TTC_UPSTREAM_DIR}/Client/Prism" "${CMAKE_BINARY_DIR}/upstream/Prism")
+    endif()
+
+    # Feed TT Central into the client build (see patches/TeamTalk5/0001).
+    set(TTCENTRAL_CLIENT_SOURCES
+        "${CMAKE_SOURCE_DIR}/src/client/integration/ttcentral_integration.h"
+        "${CMAKE_SOURCE_DIR}/src/client/integration/ttcentral_integration.cpp")
+    set(TTCENTRAL_CLIENT_LIBRARIES ttc_client)
+    set(TTCENTRAL_CLIENT_DEFINITIONS TTC_VERSION="${PROJECT_VERSION}")
+    set(TTCENTRAL_CLIENT_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/src/client/integration")
 
     add_subdirectory("${TTC_UPSTREAM_DIR}/Client/qtTeamTalk" "${CMAKE_BINARY_DIR}/upstream/qtTeamTalk")
     message(STATUS "TT Central: building the client from external/TeamTalk5 (Qt ${Qt6_VERSION})")

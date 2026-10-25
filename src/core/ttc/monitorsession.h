@@ -1,7 +1,7 @@
 // TT Central — one background monitor: a TeamTalk login stationed in a
 // channel that reports logins, logouts, private messages and channel
 // messages as MonitorEvents.
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
 

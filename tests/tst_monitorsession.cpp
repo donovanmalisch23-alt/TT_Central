@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "fakeclient.h"
 #include "ttc/monitorsession.h"
 

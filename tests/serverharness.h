@@ -1,6 +1,6 @@
 // TT Central tests — runs BearWare's real TeamTalk server (tt5srv) for
 // integration tests, configured through TT Central's own config writer.
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
 #include "ttc/serverconfig.h"

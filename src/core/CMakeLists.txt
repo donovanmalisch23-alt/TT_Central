@@ -1,4 +1,4 @@
-# ttc_core — TT Central's UI-free logic (MIT): SDK wrapper, monitor sessions,
+# ttc_core — TT Central's UI-free logic (GPL-3.0-or-later): SDK wrapper, monitor sessions,
 # text reassembly, notifications text, and local-server configuration.
 
 add_library(ttc_core STATIC

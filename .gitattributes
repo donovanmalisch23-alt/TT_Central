@@ -12,5 +12,6 @@
 *.md  text eol=lf
 *.bat text eol=crlf
 
-# Patches against external/TeamTalk5 must stay byte-exact (LF).
-*.patch text eol=lf
+# Patches against external/TeamTalk5 must stay byte-exact: some upstream files
+# use CRLF, so patches are stored with no line-ending conversion at all.
+*.patch -text

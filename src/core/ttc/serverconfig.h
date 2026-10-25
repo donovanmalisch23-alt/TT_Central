@@ -1,5 +1,5 @@
 // TT Central — configuration for a locally hosted TeamTalk server (tt5srv).
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 //
 // TT Central's server manager edits the server's own XML file (tt5srv.xml).
 // The server also stores channels, bans and other state in that file, so the

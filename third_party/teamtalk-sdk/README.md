@@ -1,7 +1,7 @@
 # TeamTalk 5 SDK (fetched, not committed)
 
 **Proprietary — © BearWare.dk.** Governed by the TeamTalk 5 SDK License
-Agreement, **not** by TT Central's MIT license.
+Agreement, **not** by TT Central's GPLv3 license.
 
 This repository is public, so the SDK is **not stored here**. It is downloaded
 into this directory at build time by [`../../scripts/fetch_sdk.py`](../../scripts/fetch_sdk.py),

@@ -1,5 +1,5 @@
 // TT Central — reassembles multi-part TeamTalk text messages.
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 //
 // Long text messages arrive as several TextMessage parts; every part except
 // the last has bMore set. Parts from different senders (or different

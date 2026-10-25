@@ -1,5 +1,5 @@
 // TT Central — configuration of one background monitor.
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #pragma once
 
@@ -54,6 +54,10 @@ struct MonitorConfig
     bool operator==(const MonitorConfig& o) const;
     bool operator!=(const MonitorConfig& o) const { return !(*this == o); }
 };
+
+/// Canonical TeamTalk channel path: "/" for the root channel, otherwise
+/// "/Parent/Child/" (accepts "Lobby", "/Lobby", "Lobby/" ...).
+QString normalizeChannelPath(const QString& path);
 
 /// The guidance shown in Settings → Monitors about sharing your account.
 QString oneLoginPerIpNote();

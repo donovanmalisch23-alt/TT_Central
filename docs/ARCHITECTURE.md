@@ -19,7 +19,7 @@ design reference. See [`ROADMAP.md`](ROADMAP.md) for phasing.
 | Settings | A central settings page with many categories |
 | Accessibility | First-class — NVDA/JAWS, keyboard-only; drives UI choices |
 | Packaging | Portable zip **and** installer; Windows 10/11 x64 |
-| Licensing | Our new code MIT; client built from GPLv3 qtTeamTalk, so the app is GPLv3; TeamTalk SDK proprietary (trial mode, never committed) |
+| Licensing | Everything ours is GPL-3.0-or-later (plus a section 7 permission to link the TeamTalk SDK); the client is built from GPLv3 qtTeamTalk; TeamTalk SDK proprietary (trial mode, never committed) |
 
 ## High-level
 
@@ -34,7 +34,7 @@ accessibility model:
   command interface is preserved.
 - **Settings**: see below.
 
-## Modules (prefer separable, MIT where ours)
+## Modules (prefer separable)
 
 - **tt-core** — thin C++ wrapper over the TeamTalk SDK (client instances, event
   pump). qtTeamTalk already provides this; reuse it.
@@ -80,7 +80,8 @@ Two different BearWare licenses are involved:
 
 - **The qtTeamTalk client source is GPLv3** (its files carry GPLv3 headers).
   TT Central builds its client from it, so the client application is GPLv3.
-  Our new modules are MIT, which is GPL-compatible.
+  Our own modules are GPLv3 too, with a section 7 permission to link the
+  SDK (see `NOTICE`).
 - **The TeamTalk 5 SDK is proprietary** (the DLL/import library and C API
   headers, plus BearWare's server sample code). It runs in trial mode without
   a license key, and its license does not allow redistributing the SDK itself.

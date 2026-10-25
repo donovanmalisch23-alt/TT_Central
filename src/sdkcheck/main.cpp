@@ -5,7 +5,7 @@
 // runtime DLL are wired up correctly (fetched by scripts/fetch_sdk.py) before
 // any of the larger client/server/monitor/media code is built.
 //
-// TT Central's own code — MIT licensed. The TeamTalk SDK it calls is
+// SPDX-License-Identifier: GPL-3.0-or-later (see NOTICE). The TeamTalk SDK it calls is
 // proprietary (c) BearWare.dk; see NOTICE.
 
 #if defined(_WIN32)
