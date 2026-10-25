@@ -1,0 +1,13 @@
+# The TeamTalk SDK binaries and sound packs are proprietary and are NOT
+# committed (fetched at build time / supplied locally). These rules only apply
+# if such files ever appear in the tree; they should normally be git-ignored.
+*.dll binary
+*.lib binary
+*.wav binary
+
+# Normalize line endings for text sources.
+* text=auto
+*.cpp text eol=lf
+*.h   text eol=lf
+*.md  text eol=lf
+*.bat text eol=crlf

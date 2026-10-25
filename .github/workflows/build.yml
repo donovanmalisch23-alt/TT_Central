@@ -1,0 +1,46 @@
+# TT Central — Windows build (skeleton)
+#
+# Phase 0 CI scaffolding. Configures the project on a Windows runner. Build and
+# test steps are enabled as module targets land (see docs/ROADMAP.md).
+# The public CI uses the SDK in trial mode; a licensed SDK is never committed.
+
+name: build
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.7.*"
+          arch: win64_msvc2019_64
+          modules: qtmultimedia
+
+      - name: Fetch TeamTalk SDK (proprietary; trial mode, not committed)
+        run: |
+          python -m pip install py7zr
+          python scripts/fetch_sdk.py
+
+      - name: Configure (CMake)
+        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+
+      # Enabled once module targets build:
+      # - name: Build
+      #   run: cmake --build build --config Release
+      # - name: Test
+      #   run: ctest --test-dir build -C Release --output-on-failure
+
+      - name: Scaffolding check
+        run: echo "TT Central Phase 0 scaffolding configured."

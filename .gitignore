@@ -1,0 +1,47 @@
+# Build output
+/build/
+/out/
+/dist/
+*.obj
+*.o
+*.exe
+*.pdb
+*.ilk
+*.exp
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+*.cmake.user
+
+# Qt
+*.user
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+
+# IDE
+.vs/
+.vscode/
+*.vcxproj.user
+
+# Bundled tools fetched at build time (not committed)
+/tools/ffmpeg/
+/tools/deno/
+/tools/yt-dlp*
+
+# TeamTalk 5 SDK — proprietary (c) BearWare.dk. NEVER commit to this public
+# repo; it is fetched into place by scripts/fetch_sdk.py. See docs/SDK.md.
+/third_party/teamtalk-sdk/include/*.h
+/third_party/teamtalk-sdk/lib/*.lib
+/third_party/teamtalk-sdk/bin/*.dll
+/third_party/teamtalk-sdk/License.txt
+
+# Local config / secrets
+config.local.*
+*.secret
+
+# OS
+Thumbs.db
+desktop.ini
