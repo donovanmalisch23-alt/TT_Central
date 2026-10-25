@@ -1,0 +1,5 @@
+[submodule "external/TeamTalk5"]
+	path = external/TeamTalk5
+	url = https://github.com/BearWare/TeamTalk5.git
+	shallow = true
+	ignore = dirty

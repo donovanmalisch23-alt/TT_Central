@@ -10,10 +10,14 @@ Instead, the SDK is **fetched into place at build time**.
 
 ```bat
 python -m pip install py7zr
-python scripts/fetch_sdk.py
+python scripts/bootstrap.py
 ```
 
-That downloads the SDK from bearware.dk and populates:
+`bootstrap.py` runs `fetch_sdk.py` when the SDK is missing, then stages the DLL
+and import library into `external/TeamTalk5/Library/TeamTalk_DLL/` (where the
+qtTeamTalk client build expects them) and checks that the header and DLL
+versions match. `fetch_sdk.py` alone downloads the SDK from bearware.dk and
+populates:
 
 ```
 third_party/teamtalk-sdk/
@@ -36,8 +40,9 @@ python scripts/fetch_sdk.py --version 5.23a --platform win64
 - **Standard** provides the client API only, via `TeamTalk5.dll` /
   `TeamTalk5.lib`.
 
-Pinned version: **v5.23a** (`TEAMTALK_VERSION "5.23.0.5209"`). The build and CI
-call `fetch_sdk.py`, so the SDK is in place before compilation — "integrated
+Pinned version: **v5.23a** (`TEAMTALK_VERSION "5.23.0.5209"`), matching the
+upstream client source pinned at tag `v5.23` (identical `TeamTalk.h`). CI runs
+`bootstrap.py`, so the SDK is in place before compilation — "integrated
 directly," just not stored in git.
 
 ## Why not commit it?
@@ -45,13 +50,12 @@ directly," just not stored in git.
 The TeamTalk 5 SDK License Agreement (fetched to
 `third_party/teamtalk-sdk/License.txt`) permits redistributing **end-user
 applications** that use the DLLs (with a License Key), **not** the SDK's files
-themselves. Committing the SDK headers/lib/DLL — or the proprietary client/server
-source — to a public repository would redistribute the SDK and violate the
-agreement. Keeping them fetched-and-git-ignored keeps TT Central a clean,
-MIT-licensed public project.
+themselves. Committing the SDK DLL, import library, or headers to this public
+repository would redistribute the SDK and violate the agreement. Keeping them
+fetched and git-ignored keeps the public repo free of proprietary files.
 
-> If TT Central were a **private** repository, the SDK could instead be vendored
-> directly. That is a project decision — see `ARCHITECTURE.md`.
+(The qtTeamTalk *client source* is different: it is GPLv3, and the repo pins it
+as a submodule — see `ARCHITECTURE.md`.)
 
 ## Licensing reminder
 

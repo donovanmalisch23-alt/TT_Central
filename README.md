@@ -14,9 +14,10 @@ the ground up, with the familiar TeamTalk sound packs included. It runs portably
 from a folder or from an installer, with no virtual audio cable and nothing extra
 to wire up.
 
-> **Status: early scaffolding (Phase 0).** The repository layout, build
-> groundwork, and vendored SDK are in place. The application itself is being
-> built in phases — see [`docs/ROADMAP.md`](docs/ROADMAP.md).
+> **Status: Phase 1 in progress.** The SDK integration is verified on Windows
+> CI, and the client is being built from BearWare's qtTeamTalk plus our patches.
+> The rest of the application is built in phases — see
+> [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
 ---
 
@@ -56,33 +57,42 @@ monitor.** TT Central surfaces this guidance in **Settings → Monitors**.
 Windows 10/11, 64-bit, for now. The base client is cross-platform, but the SDK
 and media tooling TT Central relies on are tuned for Windows.
 
-## Building
+## Building (Windows)
 
-The TeamTalk 5 SDK is proprietary and is **not** stored in this public repo; it
-is fetched into place at build time:
+Requirements: Visual Studio with MSVC x64, CMake 3.21+, Qt 6.4+ with Qt
+Multimedia and Qt Speech (CI uses Qt 6.12), Python 3, and Git.
 
 ```bat
+git clone --recurse-submodules https://github.com/donovanmalisch23-alt/TT_Central.git
+cd TT_Central
 python -m pip install py7zr
-python scripts/fetch_sdk.py
+python scripts\bootstrap.py
+cmake -S . -B build -A x64 -DCMAKE_PREFIX_PATH=C:\Qt\6.12.0\msvc2022_64
+cmake --build build --config Release
 ```
 
-See [`docs/SDK.md`](docs/SDK.md) for the details and
-[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the overall design. Toolchain:
-MSVC x64, CMake, Qt 6.
+`bootstrap.py` fetches the proprietary TeamTalk SDK (never stored in this repo),
+stages it for the client build, and applies our patches to the pinned upstream
+source. The client is built to
+`external\TeamTalk5\Client\qtTeamTalk\TeamTalk5.exe`, with its Qt runtime in the
+`windeployqt` folder next to it. See [`docs/SDK.md`](docs/SDK.md),
+[`docs/PHASE1.md`](docs/PHASE1.md), and
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Licensing
 
-TT Central's **own source code is MIT-licensed** (see [`LICENSE`](LICENSE)).
+- TT Central's **own new code is MIT-licensed** (see [`LICENSE`](LICENSE)).
+- The **client application is built from BearWare's qtTeamTalk, which is GPLv3**.
+  Our patches to it are GPLv3, and the combined application is distributed
+  under the **GPLv3** ([`LICENSES/GPL-3.0.txt`](LICENSES/GPL-3.0.txt)).
+- It links the **proprietary TeamTalk 5 SDK** (© BearWare.dk), which is fetched at
+  build time (never committed to this public repo) and runs in **trial mode**
+  without a purchased license key. Distributing binaries widely, or hosting a
+  server as a shipped product, requires a license from BearWare.
 
-It is **not** a wholly open-source product: it builds on the **proprietary
-TeamTalk 5 SDK** (© BearWare.dk), which is fetched at build time (not committed
-to this public repo) and runs in **trial mode** without a purchased license key.
-The TeamTalk sound packs are likewise proprietary and are not committed here.
-Distributing binaries widely, or hosting a server as a shipped product, requires
-a license from BearWare. See [`NOTICE`](NOTICE) and
-[`THIRD-PARTY-LICENSES.md`](THIRD-PARTY-LICENSES.md) for the full breakdown and
-the terms of every bundled component (TeamTalk SDK, sound packs, ffmpeg, yt-dlp,
-Deno).
+See [`NOTICE`](NOTICE) and [`THIRD-PARTY-LICENSES.md`](THIRD-PARTY-LICENSES.md)
+for every component (qtTeamTalk, TeamTalk SDK, sound packs, Prism, WinToast, and
+the planned media tools).
 
 ## Credits
 

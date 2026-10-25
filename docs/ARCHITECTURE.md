@@ -15,11 +15,11 @@ design reference. See [`ROADMAP.md`](ROADMAP.md) for phasing.
 | Server role | Host a local server **and** administer remote servers |
 | Monitors | Background notification watchers; multiple concurrent; auto-start after sign-in; each tagged by server |
 | Media player | Native C++ port of Simple TT Media, as a dedicated bot account |
-| Sound & notify | Bundle the original TeamTalk sound packs; event sounds + screen-reader/TTS + optional toasts |
+| Sound & notify | The original TeamTalk sound packs (Default, Majorly-G, Old, from the pinned upstream); event sounds + screen-reader/TTS + optional toasts |
 | Settings | A central settings page with many categories |
 | Accessibility | First-class — NVDA/JAWS, keyboard-only; drives UI choices |
 | Packaging | Portable zip **and** installer; Windows 10/11 x64 |
-| Licensing | Our code MIT; TeamTalk SDK + assets proprietary (trial mode) |
+| Licensing | Our new code MIT; client built from GPLv3 qtTeamTalk, so the app is GPLv3; TeamTalk SDK proprietary (trial mode, never committed) |
 
 ## High-level
 
@@ -38,8 +38,9 @@ accessibility model:
 
 - **tt-core** — thin C++ wrapper over the TeamTalk SDK (client instances, event
   pump). qtTeamTalk already provides this; reuse it.
-- **ttc-shell** — the extended qtTeamTalk app (our UI). Source-available fork;
-  keep changes as minimal, reviewable diffs.
+- **ttc-shell** — the extended qtTeamTalk app (our UI): the pinned upstream
+  (GPLv3) plus our patches in `patches/TeamTalk5/`. Keep patches minimal and
+  reviewable so upstream releases stay easy to pick up.
 - **ttc-monitor** — the background watcher subsystem. A *monitor* is a
   lightweight, mostly-passive TeamTalk login to one server + channel. Several
   run concurrently across different servers, auto-starting after sign-in. Each
@@ -70,27 +71,41 @@ accessibility model:
     media crash from the client.
 
 > Design rule: build new features as separable modules/processes rather than
-> deep edits to qtTeamTalk, so as much as possible ships under MIT and the
-> proprietary dependency stays isolated.
+> deep edits to qtTeamTalk, so upstream releases stay easy to pick up, our
+> modules stay reusable, and the proprietary SDK stays isolated.
 
-## Proprietary dependencies & repo visibility
+## Upstream source, licensing & the public repo
 
-The TeamTalk 5 SDK and the qtTeamTalk client source are proprietary
-(© BearWare.dk). BearWare's license permits redistributing *your application*,
-not the SDK or its source. That interacts with whether this repo is public:
+Two different BearWare licenses are involved:
 
-- **Public repo (current).** No BearWare files may be committed. The SDK is
-  **fetched at build time** (`scripts/fetch_sdk.py`, git-ignored — see
-  [`SDK.md`](SDK.md)). The qtTeamTalk extension is therefore built by fetching
-  the upstream client source at a pinned tag and applying **our changes as patch
-  files / separable modules**, rather than committing a copy of BearWare's
-  source. Only TT Central's own MIT code lives in the repo.
-- **Private repo.** The SDK and a qtTeamTalk fork could be vendored directly
-  (simplest), still under the trial/community posture. Wider distribution would
-  still require a BearWare license.
+- **The qtTeamTalk client source is GPLv3** (its files carry GPLv3 headers).
+  TT Central builds its client from it, so the client application is GPLv3.
+  Our new modules are MIT, which is GPL-compatible.
+- **The TeamTalk 5 SDK is proprietary** (the DLL/import library and C API
+  headers, plus BearWare's server sample code). It runs in trial mode without
+  a license key, and its license does not allow redistributing the SDK itself.
 
-This is an open project decision (see [`ROADMAP.md`](ROADMAP.md) Phase 0). The
-design above holds either way; only *how the upstream source is carried* changes.
+How the repo carries each:
+
+- **qtTeamTalk:** pinned as the git submodule `external/TeamTalk5` at tag
+  `v5.23` (a reference, not a copy). Our changes live as GPLv3 patch files in
+  `patches/TeamTalk5/`, applied by `scripts/bootstrap.py`. This keeps upstream
+  updates easy: bump the tag, re-apply the patches.
+- **SDK:** **fetched at build time** (`scripts/fetch_sdk.py`, git-ignored — see
+  [`SDK.md`](SDK.md)), then staged into the submodule by `bootstrap.py`.
+  Never committed.
+- **Sound packs:** used from the submodule (`Setup/Client/Sounds`).
+
+The repo is **public**. That's fine for everything above: the client source is
+GPLv3 and the SDK never enters git. CI publishes no build artifacts, because
+binaries contain the SDK, and redistributing them needs a BearWare license key.
+
+## Local server hosting (Phase 3 note)
+
+BearWare's `Server/TeamTalkServer` is SDK sample code under the proprietary
+license, so TT Central won't build it. Local hosting will be our own small
+host program written against the SDK's server API (`TeamTalkSrv.h`,
+Professional Edition), or BearWare's prebuilt server binary, decided in Phase 3.
 
 ## Concurrency
 
@@ -135,10 +150,13 @@ echoing the Simple TT Media wizard.
 
 ## Build & packaging
 
-- Toolchain: MSVC x64, CMake, Qt 6.
-- Pin the `bearware/TeamTalk5` source at a known tag (submodule) for the client
-  fork and server; vendor the SDK (see [`SDK.md`](SDK.md)).
-- Bundle at build time: TeamTalk SDK (trial), TeamTalk sound packs, ffmpeg,
-  yt-dlp, Deno.
+- Toolchain: MSVC x64, CMake, Qt 6 (6.12 in CI, matching BearWare's own
+  Windows CI).
+- Build the client from BearWare's source pinned as the submodule
+  `external/TeamTalk5` (tag `v5.23`), plus our patches; fetch the SDK at build
+  time (see [`SDK.md`](SDK.md)).
+- Pulled in at build time: TeamTalk SDK (trial), Prism (screen-reader output),
+  WinToast (toasts); later ffmpeg, yt-dlp, Deno for the media bot. Sound packs
+  come from the submodule.
 - Outputs: portable zip (no install, no admin) + installer (Inno Setup or WiX).
 - CI: GitHub Actions Windows runner (trial SDK; no licensed SDK committed).

@@ -1,35 +1,61 @@
 TT Central
 Copyright (c) 2026 TT Central contributors
 
-TT Central's own source code is licensed under the MIT License (see LICENSE).
+LICENSING AT A GLANCE
 
-This product bundles and/or builds on third-party components that are NOT
-covered by the MIT License and retain their own terms:
+- TT Central's own new source files (src/, scripts/, build files, docs) are
+  licensed under the MIT License (see LICENSE).
+- The TT Central client application is built from BearWare's qtTeamTalk, which
+  is licensed under the GNU General Public License, version 3 or later
+  (GPLv3). TT Central's patches to it (patches/TeamTalk5/) are GPLv3, and the
+  combined TT Central application, as built and distributed, is subject to the
+  GPLv3 (see LICENSES/GPL-3.0.txt). MIT-licensed code is GPL-compatible and may
+  be combined into it.
+- The TeamTalk 5 SDK is proprietary and is never committed to this repository.
 
-1. TeamTalk 5 SDK  —  (c) BearWare.dk  —  PROPRIETARY
-   The TeamTalk 5 SDK (TeamTalk5Pro.dll / TeamTalk5.dll, the C++ headers, and
-   the import library) is proprietary software owned by BearWare.dk and is
+COMPONENTS
+
+1. qtTeamTalk client  —  (c) BearWare.dk  —  GPLv3
+   Source: BearWare/TeamTalk5 at tag v5.23, pinned as the git submodule
+   external/TeamTalk5 (referenced, not copied into this repository). TT Central
+   applies the patches in patches/TeamTalk5/, which are GPLv3 like the code
+   they modify.
+
+2. TeamTalk 5 SDK  —  (c) BearWare.dk  —  PROPRIETARY
+   The TeamTalk 5 SDK (TeamTalk5Pro.dll / TeamTalk5.dll, the import libraries,
+   and the C API headers) is proprietary software owned by BearWare.dk and is
    governed by the TeamTalk 5 SDK License Agreement. It is NOT stored in this
    public repository; it is fetched at build time by scripts/fetch_sdk.py.
    Without a purchased License Key it runs in TRIAL MODE and disables itself
-   after ~30 days. Shipping an end-user application built on it, and
-   building/hosting a TeamTalk server, require a purchased license (Professional
-   Edition for the server). Copyright, trademark, and proprietary notices in the
-   SDK must not be removed.
+   after ~30 days. Redistributing an end-user application built on it, and
+   building/hosting a TeamTalk server, require a purchased license
+   (Professional Edition for the server). Copyright, trademark, and proprietary
+   notices in the SDK must not be removed.
 
-2. TeamTalk sound packs  —  (c) BearWare.dk  —  PROPRIETARY
-   Event sound files originating from the official TeamTalk 5 client. Proprietary
-   BearWare assets; NOT committed to this public repository. Used under the same
-   trial/community posture as the SDK; notices retained.
+3. TeamTalk sound packs  —  (c) BearWare.dk
+   Event sounds (Default, Majorly-G, Old) published in the upstream repository
+   under Setup/Client/Sounds. Used from the pinned submodule; not copied into
+   this repository. Notices retained.
 
-3. qtTeamTalk-derived code  —  (c) BearWare.dk
-   Any TT Central source derived from BearWare's qtTeamTalk client is a
-   derivative of proprietary source and is distributed as source-available
-   patches under BearWare's terms, not under the MIT License.
+4. Prism  —  Mozilla Public License 2.0  —  https://github.com/ethindp/prism
+   Screen-reader output library (v0.17.1), downloaded and built during the
+   client build. MPL-2.0 is compatible with the GPLv3.
 
-4. FFmpeg  —  LGPL/GPL (depending on build)  —  https://ffmpeg.org
-5. yt-dlp  —  The Unlicense (public domain)  —  https://github.com/yt-dlp/yt-dlp
-6. Deno  —  MIT License  —  https://deno.land
+5. WinToast  —  MIT License  —  https://github.com/mohabouje/WinToast
+   Windows toast notifications (v1.3.2), downloaded during the client build.
+
+6. FFmpeg  —  LGPL/GPL (depending on build)  —  https://ffmpeg.org
+7. yt-dlp  —  The Unlicense (public domain)  —  https://github.com/yt-dlp/yt-dlp
+8. Deno  —  MIT License  —  https://deno.land
+   (6-8: planned for the media bot; not yet used.)
+
+GPLv3 AND THE PROPRIETARY SDK
+
+BearWare publishes qtTeamTalk under the GPLv3 and designs it to link the
+proprietary TeamTalk SDK; TT Central relies on that same arrangement. When
+obtaining a TeamTalk license key, confirm with BearWare that distributing a
+modified qtTeamTalk linked against the SDK is permitted. This notice is not
+legal advice.
 
 See THIRD-PARTY-LICENSES.md for details. Before any wide binary distribution or
 server hosting as a shipped product, a TeamTalk license from BearWare.dk must be

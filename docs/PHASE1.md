@@ -2,7 +2,7 @@
 
 Goal: TT Central opens as one accessible window that is a fully working TeamTalk
 5 client, built by extending BearWare's qtTeamTalk, with our changes carried as
-patches over a pinned upstream (public-repo posture — see
+patches over BearWare's GPLv3 client source, pinned as a submodule (see
 [`ARCHITECTURE.md`](ARCHITECTURE.md)).
 
 ## Verification strategy
@@ -16,11 +16,15 @@ out per milestone.
 ## Milestones (each a small PR, CI green)
 
 - **1.0 — SDK smoke test.** `ttc-sdkcheck` links the SDK and prints its version.
-  Proves the toolchain + fetched-SDK wiring. *Status: implemented; source
-  compiles clean (`-Werror`); CI builds and runs it on Windows.*
-- **1.1 — Upstream integration.** Add `bearware/TeamTalk5` at a pinned tag
-  (git submodule) + a `patches/` dir + a bootstrap script; build **vanilla
-  qtTeamTalk** in CI. Qt returns to the workflow here.
+  Proves the toolchain + fetched-SDK wiring. *Status: **done** — green on
+  Windows CI, printing `TeamTalk SDK version: 5.23.0.5209`.*
+- **1.1 — Upstream integration.** Pin `BearWare/TeamTalk5` at tag `v5.23`
+  (submodule `external/TeamTalk5`), add `patches/TeamTalk5/` and
+  `scripts/bootstrap.py`, and build **qtTeamTalk with Prism screen-reader
+  support** in CI with Qt 6.12, then launch-test it. First patch: link the
+  Professional `TeamTalk5Pro` library (BearWare's own Pro SDK change).
+  *Status: implemented; bootstrap tested locally (fresh run, re-run, CRLF
+  checkout, conflicting edit); awaiting a green Windows CI run.*
 - **1.2 — `tt-core` wrapper.** Thin C++ wrapper over the SDK (init, connect,
   login, join, event pump) with unit tests. MIT, separable.
 - **1.3 — TT Central shell.** Main window + panel framework hosting the client

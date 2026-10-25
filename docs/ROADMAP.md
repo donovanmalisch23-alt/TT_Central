@@ -3,21 +3,14 @@
 Phased build. Each phase ends with something that runs, is accessible, and is
 packaged. See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the design.
 
-## Phase 0 — Foundations (current)
+## Phase 0 — Foundations (done)
 
-- [x] Repository scaffolding, licensing (MIT), docs.
+- [x] Repository scaffolding, licensing, docs.
 - [x] SDK fetch-at-build-time: `scripts/fetch_sdk.py` pulls the proprietary
       TeamTalk 5 SDK (pinned **v5.23a**, `TEAMTALK_VERSION 5.23.0.5209`) into
-      `third_party/teamtalk-sdk/`, git-ignored. Verified: headers + `.lib` +
-      `.dll` land and are excluded from the repo.
-- [x] CI wired to fetch the SDK before configuring.
-- [ ] Decide repo visibility (public ⇒ SDK/qtTeamTalk stay fetched + patches;
-      private ⇒ may vendor directly). See `ARCHITECTURE.md`.
-- [ ] Pin the `bearware/TeamTalk5` source at a known tag; build vanilla
-      qtTeamTalk + server on Windows.
-- [ ] CI green on a Windows runner (build enabled once module targets land).
-- [ ] Accessibility baseline audit of the stock client.
-- [ ] Confirm Qt version.
+      `third_party/teamtalk-sdk/`, git-ignored.
+- [x] Repo visibility decided: **public** (SDK fetched, never committed).
+- [x] CI green on a Windows runner.
 
 ## Phase 1 — Unified shell + client
 
@@ -26,19 +19,26 @@ packaged. See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the design.
 - A basic Settings page.
 - Portable zip + installer pipeline working with just the client.
 
+Milestones and status: see [`PHASE1.md`](PHASE1.md). 1.0 (SDK smoke test) is
+green on Windows CI; 1.1 (BearWare's qtTeamTalk + our patches, built in CI) is
+in progress.
+
 ## Phase 2 — Monitors + notifications + sound packs
 
 - The watcher subsystem: multiple concurrent background logins, auto-start after
   sign-in, tagged by server.
 - The shared notification subsystem: sound pack + TTS/screen-reader + toasts.
-- Bundle the TeamTalk sound packs.
+- Wire up the TeamTalk sound packs from the pinned upstream (Default,
+  Majorly-G, Old).
 - Settings → Monitors / Sounds / Notifications categories, including the
   one-login-per-IP guidance.
 
 ## Phase 3 — Server (remote admin → local hosting)
 
 - Remote admin first (reuses SDK admin APIs): accounts, channels, bans.
-- Local `TeamTalkServer` management: start/stop, config, accounts, channels, logs.
+- Local server hosting: start/stop, config, accounts, channels, logs (our own
+  host on the SDK server API, or BearWare's prebuilt server — see
+  `ARCHITECTURE.md`).
 - Note: building/hosting a server needs Professional Edition — a licensing gate
   for shipped distribution.
 

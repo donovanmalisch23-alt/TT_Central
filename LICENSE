@@ -22,9 +22,15 @@ SOFTWARE.
 
 ---
 
-NOTE ON SCOPE: This MIT license applies to TT Central's own source code only.
-It does NOT apply to bundled third-party or proprietary components, which keep
-their own licenses. In particular, the TeamTalk 5 SDK and the TeamTalk sound
-packs are © BearWare.dk and are governed by the TeamTalk 5 SDK License Agreement
-(see third_party/teamtalk-sdk/License.txt), not by this license. See NOTICE and
-THIRD-PARTY-LICENSES.md.
+NOTE ON SCOPE: This MIT license applies to TT Central's own new source files
+only. It does NOT apply to third-party components, which keep their own
+licenses. In particular:
+
+- The TT Central client application is built from BearWare's qtTeamTalk, which
+  is licensed under the GNU GPL version 3 or later. TT Central's patches to it
+  (patches/TeamTalk5/) are GPLv3, and the combined application, as built and
+  distributed, is subject to the GPLv3 (see LICENSES/GPL-3.0.txt).
+- The TeamTalk 5 SDK is proprietary (c) BearWare.dk, governed by the TeamTalk 5
+  SDK License Agreement, and is never committed to this repository.
+
+See NOTICE and THIRD-PARTY-LICENSES.md.

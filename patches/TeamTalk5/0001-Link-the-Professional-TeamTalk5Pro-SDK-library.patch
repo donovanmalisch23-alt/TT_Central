@@ -1,0 +1,33 @@
+From: TT Central contributors
+Subject: [PATCH] qtTeamTalk: link the Professional TeamTalk5Pro SDK library
+
+TT Central uses the Professional SDK everywhere (client, monitors, media bot,
+and the server API), so the client links TeamTalk5Pro instead of the Standard
+TeamTalk5 library. This mirrors the change BearWare applies to the qtTeamTalk
+sources it ships inside the TeamTalk 5 Professional SDK (v5.23a).
+
+Upstream: BearWare/TeamTalk5 tag v5.23 (a0d26fd). License: GPLv3 (as upstream).
+---
+diff --git a/Client/qtTeamTalk/CMakeLists.txt b/Client/qtTeamTalk/CMakeLists.txt
+index 20ec78a..846ac30 100644
+--- a/Client/qtTeamTalk/CMakeLists.txt
++++ b/Client/qtTeamTalk/CMakeLists.txt
+@@ -226,14 +226,14 @@ if (Qt5_FOUND OR Qt6_FOUND)
+       target_link_libraries (${TEAMTALK_TARGET} WinToast)
+     endif()
+ 
+-    if (BUILD_TEAMTALK_LIBRARY_DLL)
++    if (BUILD_TEAMTALKPRO_LIBRARY_DLL)
+       target_include_directories (${TEAMTALK_TARGET} PUBLIC ./)
+-      target_link_libraries (${TEAMTALK_TARGET} ${TEAMTALK_LINK_FLAGS} TeamTalk5DLL)
++      target_link_libraries (${TEAMTALK_TARGET} ${TEAMTALK_LINK_FLAGS} TeamTalk5ProDLL)
+     else()
+       target_include_directories (${TEAMTALK_TARGET} PUBLIC ../../Library/TeamTalk_DLL ./)
+-      find_library(TEAMTALK5_LIBRARY TeamTalk5 PATHS ../../Library/TeamTalk_DLL)
++      find_library(TEAMTALK5_LIBRARY TeamTalk5Pro PATHS ../../Library/TeamTalk_DLL)
+       if (NOT TEAMTALK5_LIBRARY)
+-        message(WARNING "Cannot find TeamTalk5 shared library in ../../Library/TeamTalk_DLL")
++        message(WARNING "Cannot find TeamTalk5Pro shared library in ../../Library/TeamTalk_DLL")
+       else()
+         target_link_libraries (${TEAMTALK_TARGET} ${TEAMTALK_LINK_FLAGS} ${TEAMTALK5_LIBRARY})
+       endif()
