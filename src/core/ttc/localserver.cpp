@@ -210,9 +210,28 @@ void LocalServer::setState(State s)
 
 bool LocalServer::portIsFree(int port, const QString& bindIp)
 {
-    QTcpServer probe;
-    const QHostAddress addr = bindIp.trimmed().isEmpty() ? QHostAddress(QHostAddress::Any) : QHostAddress(bindIp.trimmed());
-    return probe.listen(addr, quint16(port));
+    // Windows lets a program bind one address on a port that another holds
+    // on "all addresses" (and the other way round), so check every address
+    // the server may use, and whether anything already answers there.
+    QList<QHostAddress> addresses{QHostAddress(QHostAddress::Any), QHostAddress(QHostAddress::LocalHost)};
+    const QHostAddress bind(bindIp.trimmed());
+    if (!bindIp.trimmed().isEmpty() && !bind.isNull())
+        addresses << bind;
+    for (const QHostAddress& a : std::as_const(addresses))
+    {
+        QTcpServer probe;
+        if (!probe.listen(a, quint16(port)))
+            return false;
+    }
+    QTcpSocket s;
+    s.connectToHost(bind.isNull() || bind == QHostAddress(QHostAddress::Any) ? QHostAddress(QHostAddress::LocalHost) : bind,
+                    quint16(port));
+    if (s.waitForConnected(300))
+    {
+        s.abort();
+        return false;
+    }
+    return true;
 }
 
 void LocalServer::start()
