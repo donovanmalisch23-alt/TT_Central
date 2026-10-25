@@ -14,11 +14,14 @@ add_library(ttc_client STATIC
     ttc/mediabotcontroller.h    ttc/mediabotcontroller.cpp
     ttc/mediabotwindow.h        ttc/mediabotwindow.cpp
     ttc/mediabotpage.h          ttc/mediabotpage.cpp
+    ttc/serverwindow.h          ttc/serverwindow.cpp
 )
 set_target_properties(ttc_client PROPERTIES AUTOMOC ON)
 target_include_directories(ttc_client PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_link_libraries(ttc_client PUBLIC ttc_core ttc_media Qt6::Widgets)
-target_compile_definitions(ttc_client PRIVATE TTC_VERSION="${PROJECT_VERSION}")
+target_compile_definitions(ttc_client PRIVATE TTC_VERSION="${PROJECT_VERSION}"
+    # Development builds find BearWare's server in the fetched SDK.
+    TTC_DEV_SERVER_EXE="${TTC_SERVER_EXE}")
 if(MSVC)
     target_compile_options(ttc_client PRIVATE /W4 /permissive- /utf-8)
 else()

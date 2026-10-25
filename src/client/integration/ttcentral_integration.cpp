@@ -128,6 +128,15 @@ void install(QMainWindow* mainWindow, QMenuBar* menuBar)
     };
     hooks.savedServers = &savedServers;
     hooks.addSavedServer = &addSavedServer;
+    hooks.adminActions = [mainWindow] {
+        QList<QAction*> list;
+        for (const char* name : {"actionServerProperties", "actionUserAccounts", "actionBannedUsers",
+                                 "actionOnlineUsers", "actionServerStatistics", "actionBroadcastMessage",
+                                 "actionSaveConfiguration"})
+            if (auto* a = mainWindow->findChild<QAction*>(QLatin1String(name)))
+                list << a;
+        return list;
+    };
     hooks.openClientPreferences = [mainWindow] {
         if (auto* a = mainWindow->findChild<QAction*>(QStringLiteral("actionPreferences")))
             a->trigger();

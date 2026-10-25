@@ -76,15 +76,21 @@ QString LocalServerConfig::validationError() const
     if (!bindIp.trimmed().isEmpty() && QHostAddress(bindIp.trimmed()).isNull())
         return tr("The bind address is not a valid IP address.");
     QSet<QString> seen;
+    bool admin = false;
     for (const ServerAccount& a : accounts)
     {
         const QString name = a.username.trimmed().toLower();
+        if (name.isEmpty())
+            return tr("Every account needs a username.");
+        admin = admin || a.admin;
         if (seen.contains(name))
             return tr("The account \"%1\" is listed more than once.").arg(a.username);
         seen.insert(name);
     }
     if (accounts.isEmpty())
         return tr("Add at least one account, or nobody will be able to log in.");
+    if (!admin)
+        return tr("Make at least one account an administrator, so someone can manage the server.");
     return {};
 }
 

@@ -16,11 +16,13 @@ class QWidget;
 
 namespace ttc {
 
+class LocalServer;
 class MediaBotController;
 class MediaBotWindow;
 class MonitorManager;
 class MonitorsWindow;
 class NotificationCenter;
+class ServerWindow;
 
 /// TT Central's version (CMake project version).
 QString version();
@@ -37,6 +39,7 @@ public:
 
     MonitorManager* monitors() const { return m_monitors; }
     MediaBotController* mediaBot() const { return m_media; }
+    LocalServer* localServer() const { return m_server; }
     NotificationCenter* notifications() const { return m_notify; }
     QList<ShortcutInfo> shortcuts() const;
 
@@ -44,6 +47,9 @@ public:
     void onClientLoggedIn();
 
     enum Page { PageMonitors = 0, PageNotifications, PageSounds, PageMediaBot, PageAccessibility };
+
+    /// Where the local server keeps its files (next to TT Central's settings).
+    static QString defaultServerFolder(QSettings* settings);
 
     /// Build the Settings dialog (not shown yet).
     SettingsDialog* createSettingsDialog(int page, QWidget* parent);
@@ -61,6 +67,7 @@ public:
 public slots:
     void showMonitors();
     void showMediaBot();
+    void showLocalServer();
     void showSettings(int page = PageMonitors);
     void showAbout();
     void readLastNotification();
@@ -69,6 +76,8 @@ private:
     void buildMenu();
     void updateRunAction();
     void updateMediaAction();
+    void updateServerAction();
+    void buildAdminMenu();
 
     ClientHooks m_hooks;
     QWidget* m_window = nullptr;
@@ -77,7 +86,11 @@ private:
     QMenu* m_menu = nullptr;
     QAction* m_runAction = nullptr;
     QAction* m_mediaRunAction = nullptr;
+    QAction* m_serverRunAction = nullptr;
+    QMenu* m_adminMenu = nullptr;
     MediaBotController* m_media = nullptr;
+    LocalServer* m_server = nullptr;
+    QPointer<ServerWindow> m_serverWindow;
     QPointer<MonitorsWindow> m_monitorsWindow;
     QPointer<MediaBotWindow> m_mediaWindow;
     bool m_autoStarted = false;

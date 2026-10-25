@@ -4,6 +4,8 @@
 #include "fakeclient.h"
 #include "ttc/a11yaudit.h"
 #include "ttc/central.h"
+#include "ttc/localserver.h"
+#include "ttc/serverwindow.h"
 #include "ttc/mediabotcontroller.h"
 #include "ttc/mediabotpage.h"
 #include "ttc/mediabotwindow.h"
@@ -14,6 +16,7 @@
 #include "ttc/settingsdialog.h"
 
 #include <QApplication>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QJsonArray>
 #include <QLineEdit>
@@ -244,12 +247,14 @@ private slots:
         for (QAction* a : central.menu()->actions())
             if (!a->isSeparator())
                 titles << a->text();
-        QCOMPARE(titles.size(), 7);
+        QCOMPARE(titles.size(), 9);
+        QVERIFY(titles.contains(QStringLiteral("&Local server...")));
+        QVERIFY(titles.contains(QStringLiteral("Set up a local ser&ver...")));
         QVERIFY(titles.contains(QStringLiteral("Media &bot...")));
         QVERIFY(titles.contains(QStringLiteral("Set up the media b&ot...")));
         QCOMPARE(central.menu()->title(), QStringLiteral("&TT Central"));
         QCOMPARE(central.menu()->actions().first()->shortcut(), QKeySequence(QStringLiteral("Ctrl+Shift+O")));
-        QCOMPARE(central.shortcuts().size(), 5);
+        QCOMPARE(central.shortcuts().size(), 6);
 
         QVERIFY(!central.monitors()->isRunning());
         central.onClientLoggedIn();
@@ -424,6 +429,60 @@ private slots:
         QString reply;
         bot.command(QStringLiteral("v"), [&](const QString& r) { reply = r; });
         QVERIFY(reply.contains(QStringLiteral("not running")));
+    }
+
+    // --- Local server (client side) ------------------------------------------
+    void serverWindowIsAccessibleAndSaves()
+    {
+        QTemporaryDir dir;
+        QSettings s(dir.filePath(QStringLiteral("srv.ini")), QSettings::IniFormat);
+        LocalServer server(dir.filePath(QStringLiteral("no-tt5srv")), dir.filePath(QStringLiteral("server")));
+        QList<SavedServer> added;
+        ClientHooks hooks;
+        hooks.addSavedServer = [&](const SavedServer& sv) { added << sv; };
+        ServerWindow win(&server, &s, hooks);
+        win.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&win));
+        QStringList problems = auditAccessibility(&win);
+        QVERIFY2(problems.isEmpty(), qPrintable(problems.join(QLatin1Char('\n'))));
+
+        QString why;
+        win.warn = [&](const QString& w) { why = w; };
+        QVERIFY(!win.save());                      // no accounts yet
+        QVERIFY(!why.isEmpty());
+        QVERIFY(!server.hasConfig());
+
+        AccountDialog acc(ServerAccount{}, {QStringLiteral("Taken")});
+        acc.show();
+        problems = auditAccessibility(&acc);
+        QVERIFY2(problems.isEmpty(), qPrintable(problems.join(QLatin1Char('\n'))));
+        auto* user = acc.findChild<QLineEdit*>();
+        user->setText(QStringLiteral("taken"));
+        QVERIFY(acc.validationError().contains(QStringLiteral("already")));
+        user->setText(QStringLiteral("boss"));
+        QVERIFY(acc.validationError().isEmpty());
+        acc.findChild<QCheckBox*>()->setChecked(true);   // administrator
+        QVERIFY(acc.account().admin);
+
+        // Fill in a name and an administrator, through the window's own fields.
+        for (QLineEdit* e : win.findChildren<QLineEdit*>())
+            if (e->accessibleName() == QLatin1String("Server name"))
+                e->setText(QStringLiteral("Family Server"));
+        LocalServerConfig c = win.current();
+        QCOMPARE(c.serverName, QStringLiteral("Family Server"));
+        c.accounts = {acc.account()};
+        QString err;
+        QVERIFY2(server.setConfig(c, &err), qPrintable(err));
+        QVERIFY(server.hasConfig());
+        LocalServerConfig back;
+        QVERIFY(readServerXml(server.configPath(), back));
+        QCOMPARE(back.serverName, QStringLiteral("Family Server"));
+        QCOMPARE(back.accounts.size(), 1);
+
+        // Starting without the server program explains itself.
+        server.start();
+        QCOMPARE(server.state(), LocalServer::State::Failed);
+        QVERIFY(server.stateText().contains(QStringLiteral("not found")));
     }
 
     void auditCatchesUnnamedControls()

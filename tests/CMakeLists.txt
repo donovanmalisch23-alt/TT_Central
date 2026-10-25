@@ -38,6 +38,11 @@ target_compile_definitions(tst_integration_monitor PRIVATE TTC_SERVER_EXE_PATH="
 set_tests_properties(tst_integration_monitor PROPERTIES TIMEOUT 180 LABELS integration
     ENVIRONMENT "QTEST_FUNCTION_TIMEOUT=60000")
 
+ttc_add_test(tst_integration_localserver serverharness.h)
+target_compile_definitions(tst_integration_localserver PRIVATE TTC_SERVER_EXE_PATH="${TTC_SERVER_EXE}")
+set_tests_properties(tst_integration_localserver PROPERTIES TIMEOUT 180 LABELS integration
+    ENVIRONMENT "QTEST_FUNCTION_TIMEOUT=90000")
+
 # --- media bot ----------------------------------------------------------------
 # pcmgen stands in for ffmpeg: it writes a sine tone as raw PCM.
 add_executable(pcmgen pcmgen.cpp)

@@ -9,6 +9,7 @@ add_library(ttc_core STATIC
     ttc/monitorevent.h       ttc/monitorevent.cpp
     ttc/monitorsession.h     ttc/monitorsession.cpp
     ttc/serverconfig.h       ttc/serverconfig.cpp
+    ttc/localserver.h        ttc/localserver.cpp
 )
 set_target_properties(ttc_core PROPERTIES AUTOMOC ON)
 target_include_directories(ttc_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

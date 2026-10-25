@@ -12,6 +12,8 @@
 #include <QList>
 #include <QString>
 
+class QAction;
+
 #include <functional>
 
 class QSettings;
@@ -41,6 +43,9 @@ struct ClientHooks
     std::function<void()> openClientPreferences;
     /// Add a server to the client's server list (e.g. your local server).
     std::function<void(const SavedServer&)> addSavedServer;
+    /// The client's own server administration actions (server properties,
+    /// accounts, bans, ...), shown again in TT Central's menu.
+    std::function<QList<QAction*>()> adminActions;
 };
 
 } // namespace ttc

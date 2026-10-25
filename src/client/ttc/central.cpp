@@ -2,6 +2,8 @@
 #include "ttc/central.h"
 
 #include "ttc/a11yaudit.h"
+#include "ttc/localserver.h"
+#include "ttc/serverwindow.h"
 #include "ttc/mediabotcontroller.h"
 #include "ttc/mediabotpage.h"
 #include "ttc/mediabotwindow.h"
@@ -36,6 +38,7 @@ const QKeySequence kMonitorsKeys(QStringLiteral("Ctrl+Shift+O"));
 const QKeySequence kReadLastKeys(QStringLiteral("Ctrl+Shift+N"));
 const QKeySequence kSettingsKeys(QStringLiteral("Ctrl+Shift+P"));
 const QKeySequence kMediaKeys(QStringLiteral("Ctrl+Shift+J"));
+const QKeySequence kServerKeys(QStringLiteral("Ctrl+Shift+K"));
 } // namespace
 
 Central::Central(ClientHooks hooks, QWidget* mainWindow)
@@ -52,6 +55,13 @@ Central::Central(ClientHooks hooks, QWidget* mainWindow)
 
     m_media = new MediaBotController(m_hooks.settings, {}, this);
     connect(m_media, &MediaBotController::stateChanged, this, &Central::updateMediaAction);
+#ifdef TTC_DEV_SERVER_EXE
+    const QString devServer = QStringLiteral(TTC_DEV_SERVER_EXE);
+#else
+    const QString devServer;
+#endif
+    m_server = new LocalServer(LocalServer::findServerExecutable(devServer), defaultServerFolder(m_hooks.settings), this);
+    connect(m_server, &LocalServer::stateChanged, this, &Central::updateServerAction);
 
     buildMenu();
 
@@ -59,6 +69,9 @@ Central::Central(ClientHooks hooks, QWidget* mainWindow)
         QTimer::singleShot(1500, m_monitors, &MonitorManager::startAll);
     if (m_media->config().autoStart && m_media->isConfigured())
         QTimer::singleShot(2000, m_media, &MediaBotController::start);
+    // The local server first, so a bot or monitor pointed at it finds it up.
+    if (m_hooks.settings && m_hooks.settings->value(ServerWindow::autoStartKey(), false).toBool())
+        QTimer::singleShot(500, m_server, &LocalServer::start);
 }
 
 Central::~Central() = default;
@@ -101,6 +114,22 @@ void Central::buildMenu()
     updateMediaAction();
 
     m_menu->addSeparator();
+    QAction* server = m_menu->addAction(tr("&Local server..."));
+    server->setShortcut(kServerKeys);
+    connect(server, &QAction::triggered, this, &Central::showLocalServer);
+    m_serverRunAction = m_menu->addAction(QString());
+    connect(m_serverRunAction, &QAction::triggered, this, [this] {
+        if (m_server->isRunning())
+            m_server->stop();
+        else if (m_server->hasConfig())
+            m_server->start();
+        else
+            showLocalServer();
+    });
+    updateServerAction();
+    buildAdminMenu();
+
+    m_menu->addSeparator();
     QAction* settings = m_menu->addAction(tr("TT Central &settings..."));
     settings->setShortcut(kSettingsKeys);
     connect(settings, &QAction::triggered, this, [this] { showSettings(PageMonitors); });
@@ -116,6 +145,7 @@ QList<ShortcutInfo> Central::shortcuts() const
         {tr("Monitors and notifications"), kMonitorsKeys.toString(QKeySequence::NativeText)},
         {tr("Read last notification aloud"), kReadLastKeys.toString(QKeySequence::NativeText)},
         {tr("Media bot window"), kMediaKeys.toString(QKeySequence::NativeText)},
+        {tr("Local server window"), kServerKeys.toString(QKeySequence::NativeText)},
         {tr("TT Central settings"), kSettingsKeys.toString(QKeySequence::NativeText)},
         {tr("TT Central menu"), tr("Alt+T")},
     };
@@ -135,6 +165,57 @@ void Central::updateMediaAction()
         m_mediaRunAction->setText(tr("Stop the media b&ot"));
     else
         m_mediaRunAction->setText(m_media->isConfigured() ? tr("Start the media b&ot") : tr("Set up the media b&ot..."));
+}
+
+QString Central::defaultServerFolder(QSettings* settings)
+{
+    const QString base = settings ? QFileInfo(settings->fileName()).absolutePath() : QDir::homePath();
+    return QDir(base).filePath(QStringLiteral("server"));
+}
+
+void Central::updateServerAction()
+{
+    if (!m_serverRunAction)
+        return;
+    if (m_server->isRunning())
+        m_serverRunAction->setText(tr("Stop the local ser&ver"));
+    else
+        m_serverRunAction->setText(m_server->hasConfig() ? tr("Start the local ser&ver") : tr("Set up a local ser&ver..."));
+}
+
+void Central::buildAdminMenu()
+{
+    if (!m_hooks.adminActions)
+        return;
+    const QList<QAction*> originals = m_hooks.adminActions();
+    if (originals.isEmpty())
+        return;
+    m_adminMenu = m_menu->addMenu(tr("Server &administration"));
+    for (QAction* orig : originals)
+    {
+        // A twin without the shortcut (the original keeps it) that follows
+        // the original's state: enabled only when you are an administrator.
+        auto* twin = m_adminMenu->addAction(orig->text());
+        twin->setEnabled(orig->isEnabled());
+        twin->setToolTip(orig->toolTip());
+        connect(twin, &QAction::triggered, orig, &QAction::trigger);
+        connect(orig, &QAction::changed, twin, [twin, orig] {
+            twin->setEnabled(orig->isEnabled());
+            twin->setText(orig->text());
+        });
+    }
+}
+
+void Central::showLocalServer()
+{
+    if (!m_serverWindow)
+    {
+        m_serverWindow = new ServerWindow(m_server, m_hooks.settings, m_hooks, m_window);
+        m_serverWindow->setAttribute(Qt::WA_DeleteOnClose);
+    }
+    m_serverWindow->show();
+    m_serverWindow->raise();
+    m_serverWindow->activateWindow();
 }
 
 void Central::showMediaBot()
@@ -268,6 +349,28 @@ Central::SelfTestResult Central::runSelfTest(QWidget* mainWindow, QMenuBar* menu
         pass(QStringLiteral("media bot program found: %1").arg(QDir::toNativeSeparators(m_media->botExecutable())));
     else
         fail(QStringLiteral("media bot program missing: %1").arg(QDir::toNativeSeparators(m_media->botExecutable())));
+
+    showLocalServer();
+    if (m_serverWindow && m_serverWindow->isVisible())
+    {
+        pass(QStringLiteral("Local server window opens"));
+        audit(QStringLiteral("Local server window"), m_serverWindow);
+        AccountDialog account(ServerAccount{}, {}, m_serverWindow);
+        account.show();
+        audit(QStringLiteral("Add Account dialog"), &account);
+        account.close();
+        m_serverWindow->close();
+    }
+    else
+        fail(QStringLiteral("Local server window did not open"));
+    if (QFileInfo::exists(m_server->serverExecutable()))
+        pass(QStringLiteral("TeamTalk server program found: %1").arg(QDir::toNativeSeparators(m_server->serverExecutable())));
+    else
+        fail(QStringLiteral("TeamTalk server program missing: %1").arg(QDir::toNativeSeparators(m_server->serverExecutable())));
+    if (m_adminMenu && !m_adminMenu->actions().isEmpty())
+        pass(QStringLiteral("server administration menu lists %1 of the client's actions").arg(m_adminMenu->actions().size()));
+    else
+        fail(QStringLiteral("server administration menu is missing"));
 
     std::unique_ptr<SettingsDialog> settings(createSettingsDialog(PageMonitors, mainWindow));
     settings->show();
