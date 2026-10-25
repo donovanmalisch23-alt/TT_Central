@@ -21,6 +21,47 @@ design reference. See [`ROADMAP.md`](ROADMAP.md) for phasing.
 | Packaging | Portable zip **and** installer; Windows 10/11 x64 |
 | Licensing | Everything ours is GPL-3.0-or-later (plus a section 7 permission to link the TeamTalk SDK); the client is built from GPLv3 qtTeamTalk; TeamTalk SDK proprietary (trial mode, never committed) |
 
+## As built
+
+TT Central is BearWare's TeamTalk client with a **TT Central** menu and its
+own windows, rather than a new main window: the client's accessibility (the
+gold standard for blind TeamTalk users) stays exactly as it is, and upstream
+updates stay easy to pick up.
+
+| Part | Where | What it is |
+|---|---|---|
+| Client | `external/TeamTalk5` + `patches/TeamTalk5/0001` | BearWare's qtTeamTalk (GPLv3), branded TT Central, with three hooks: compile in our integration file, install the TT Central menu, pass client events |
+| Integration | `src/client/integration/` | Fills `ClientHooks` from qtTeamTalk: settings store, speech (Prism/Qt TTS), sound packs, toasts, saved servers, preferences, admin actions |
+| `ttc_core` | `src/core/` | UI-free logic: SDK wrapper (`TeamTalkClient`), monitor sessions, text reassembly, server config (`tt5srv.xml`), local server process manager |
+| `ttc_client` | `src/client/ttc/` | Qt Widgets: the TT Central menu, monitor manager, notification center, Monitors / Media bot / Local server windows, Settings dialog, welcome, accessibility audit and self-test |
+| `ttc_media` + `ttc-mediabot` | `src/media/` | The media bot: pipe-fed ffmpeg audio engine, player, sources (yt-dlp, Spotify, Apple Music, direct), commands, lock, bot session, control server |
+| Tests | `tests/` | Unit tests with fakes; integration tests against the real `tt5srv`; `pcmgen` stands in for ffmpeg |
+| Packaging | `scripts/package.py`, `packaging/windows/ttcentral.iss` | Portable folder/zip and Inno Setup installer |
+
+Processes: `TTCentral.exe` (client, monitors, local server manager) starts
+`ttc-mediabot.exe` and `tt5srv.exe` as child processes. The media bot talks
+to TT Central over a per-user local socket (JSON lines) and exits if TT
+Central does (`--parent-pid`). Each monitor and the bot are separate TeamTalk
+logins.
+
+### Media bot audio path
+
+ffmpeg decodes to signed 16-bit 48 kHz stereo PCM on a pipe. A feeder thread
+reads 20 ms frames, applies the volume and calls `TT_InsertAudioBlock`,
+staying at most 350 ms ahead of real time so stop and skip respond at once.
+Pause stops reading; the pipe fills and ffmpeg blocks, so memory stays flat
+and the position is kept. (`QProcess` would buffer the whole decode, so the
+decoder runs under a small `PipeProcess` with blocking reads.) Stream URLs
+are resolved by yt-dlp just before a track plays, with the next one
+prefetched; Spotify and Apple Music tracks are matched on YouTube by title
+and duration.
+
+## Original design notes
+
+The sections below are the original plan; "As built" above supersedes them
+where they differ (for example, panels became separate windows reached from
+the TT Central menu).
+
 ## High-level
 
 A main window hosts dockable/tabbed panels sharing one settings store and one

@@ -15,6 +15,7 @@ add_library(ttc_client STATIC
     ttc/mediabotwindow.h        ttc/mediabotwindow.cpp
     ttc/mediabotpage.h          ttc/mediabotpage.cpp
     ttc/serverwindow.h          ttc/serverwindow.cpp
+    ttc/welcomedialog.h         ttc/welcomedialog.cpp
 )
 set_target_properties(ttc_client PROPERTIES AUTOMOC ON)
 target_include_directories(ttc_client PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

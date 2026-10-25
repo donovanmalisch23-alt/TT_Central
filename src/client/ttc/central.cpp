@@ -4,6 +4,7 @@
 #include "ttc/a11yaudit.h"
 #include "ttc/localserver.h"
 #include "ttc/serverwindow.h"
+#include "ttc/welcomedialog.h"
 #include "ttc/mediabotcontroller.h"
 #include "ttc/mediabotpage.h"
 #include "ttc/mediabotwindow.h"
@@ -14,6 +15,8 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QDesktopServices>
+#include <QUrl>
 #include <QDir>
 #include <QFileInfo>
 #include <QHash>
@@ -69,6 +72,10 @@ Central::Central(ClientHooks hooks, QWidget* mainWindow)
         QTimer::singleShot(1500, m_monitors, &MonitorManager::startAll);
     if (m_media->config().autoStart && m_media->isConfigured())
         QTimer::singleShot(2000, m_media, &MediaBotController::start);
+    // First run: say what TT Central adds (never during the CI self-test).
+    if (m_hooks.settings && !m_hooks.settings->value(WelcomeDialog::shownKey(), false).toBool() &&
+        qEnvironmentVariableIsEmpty("TTC_SELFTEST") && qEnvironmentVariableIsEmpty("TTC_NO_WELCOME"))
+        QTimer::singleShot(1500, this, &Central::showWelcome);
     // The local server first, so a bot or monitor pointed at it finds it up.
     if (m_hooks.settings && m_hooks.settings->value(ServerWindow::autoStartKey(), false).toBool())
         QTimer::singleShot(500, m_server, &LocalServer::start);
@@ -135,6 +142,10 @@ void Central::buildMenu()
     connect(settings, &QAction::triggered, this, [this] { showSettings(PageMonitors); });
 
     m_menu->addSeparator();
+    QAction* guide = m_menu->addAction(tr("TT Central user &guide"));
+    connect(guide, &QAction::triggered, this, &Central::openUserGuide);
+    QAction* welcome = m_menu->addAction(tr("&Welcome..."));
+    connect(welcome, &QAction::triggered, this, &Central::showWelcome);
     QAction* about = m_menu->addAction(tr("&About TT Central"));
     connect(about, &QAction::triggered, this, &Central::showAbout);
 }
@@ -216,6 +227,44 @@ void Central::showLocalServer()
     m_serverWindow->show();
     m_serverWindow->raise();
     m_serverWindow->activateWindow();
+}
+
+void Central::showWelcome()
+{
+    // Wait for any dialog the client shows on its own first start.
+    if (QApplication::activeModalWidget())
+    {
+        QTimer::singleShot(2000, this, &Central::showWelcome);
+        return;
+    }
+    WelcomeDialog dlg(m_window);
+    const int rc = dlg.exec();
+    Q_UNUSED(rc);
+    if (m_hooks.settings && !dlg.showAgain())
+    {
+        m_hooks.settings->setValue(WelcomeDialog::shownKey(), true);
+        m_hooks.settings->sync();
+    }
+    switch (dlg.choice())
+    {
+    case WelcomeDialog::SetUpMonitor: showSettings(PageMonitors); break;
+    case WelcomeDialog::SetUpMediaBot: showSettings(PageMediaBot); break;
+    case WelcomeDialog::SetUpServer: showLocalServer(); break;
+    case WelcomeDialog::OpenGuide: openUserGuide(); break;
+    case WelcomeDialog::None: break;
+    }
+}
+
+void Central::openUserGuide()
+{
+    const QDir app(QCoreApplication::applicationDirPath());
+    for (const char* name : {"User Guide.html", "User Guide.md"})
+        if (QFileInfo::exists(app.filePath(QLatin1String(name))))
+        {
+            QDesktopServices::openUrl(QUrl::fromLocalFile(app.filePath(QLatin1String(name))));
+            return;
+        }
+    QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/donovanmalisch23-alt/TT_Central/blob/master/docs/USER-GUIDE.md")));
 }
 
 void Central::showMediaBot()
@@ -371,6 +420,13 @@ Central::SelfTestResult Central::runSelfTest(QWidget* mainWindow, QMenuBar* menu
         pass(QStringLiteral("server administration menu lists %1 of the client's actions").arg(m_adminMenu->actions().size()));
     else
         fail(QStringLiteral("server administration menu is missing"));
+
+    {
+        WelcomeDialog welcome(mainWindow);
+        welcome.show();
+        audit(QStringLiteral("Welcome dialog"), &welcome);
+        welcome.close();
+    }
 
     std::unique_ptr<SettingsDialog> settings(createSettingsDialog(PageMonitors, mainWindow));
     settings->show();

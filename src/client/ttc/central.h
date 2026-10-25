@@ -68,6 +68,8 @@ public slots:
     void showMonitors();
     void showMediaBot();
     void showLocalServer();
+    void showWelcome();
+    void openUserGuide();
     void showSettings(int page = PageMonitors);
     void showAbout();
     void readLastNotification();

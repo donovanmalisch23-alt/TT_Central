@@ -58,10 +58,17 @@ COMPONENTS
 5. WinToast  —  MIT License  —  https://github.com/mohabouje/WinToast
    Windows toast notifications (v1.3.2), downloaded during the client build.
 
-6. FFmpeg  —  LGPL/GPL (depending on build)  —  https://ffmpeg.org
+6. FFmpeg  —  GNU GPL v3 (BtbN GPL build)  —  https://ffmpeg.org
 7. yt-dlp  —  The Unlicense (public domain)  —  https://github.com/yt-dlp/yt-dlp
 8. Deno  —  MIT License  —  https://deno.land
-   (6-8: planned for the media bot; not yet used.)
+   (6-8: separate programs the media bot runs; fetched by
+   scripts/fetch_tools.py into tools/ and bundled in packages, never
+   committed.)
+
+9. Simple TT Media  —  MIT License  —  Copyright (c) 2026 Simple TT Media
+   contributors. TT Central's media bot is a C++ port of its design and
+   command set. MIT-licensed code may be used in GPLv3 software; its
+   copyright and permission notice are kept here.
 
 GPLv3 AND THE PROPRIETARY SDK
 

@@ -12,9 +12,10 @@ keep their own terms.
 | TeamTalk sound packs (BearWare) | BearWare assets | Used from the pinned submodule |
 | Prism v0.17.1 | **MPL-2.0** | Downloaded and built during the client build |
 | WinToast v1.3.2 | **MIT** | Downloaded during the client build |
-| FFmpeg | LGPL/GPL | Planned (media bot) |
-| yt-dlp | Unlicense | Planned (media bot) |
-| Deno | MIT | Planned (media bot) |
+| FFmpeg (BtbN GPL build) | **GPLv3** | Fetched by `scripts/fetch_tools.py`; bundled in packages |
+| yt-dlp | Unlicense | Fetched by `scripts/fetch_tools.py`; bundled in packages |
+| Deno | MIT | Fetched by `scripts/fetch_tools.py`; bundled in packages |
+| Simple TT Media | MIT | The media bot is a C++ port of its design and command set |
 
 ## qtTeamTalk client — GPLv3 (© BearWare.dk)
 
@@ -61,17 +62,28 @@ keep their own terms.
 - Windows toast notifications. Fetched from
   https://github.com/mohabouje/WinToast (v1.3.2) during the build.
 
-## FFmpeg — LGPL/GPL (planned)
+## FFmpeg — GNU GPL version 3
 
-- **Use:** bundled executable, invoked as a subprocess by the media engine to
-  decode audio. **Terms:** see https://ffmpeg.org/legal.html.
+- **Use:** `tools/ffmpeg/ffmpeg.exe`, run as a separate program by the media
+  bot to decode audio. The GPL build from https://github.com/BtbN/FFmpeg-Builds
+  is fetched by `scripts/fetch_tools.py` and bundled in packages.
+- **Terms:** https://ffmpeg.org/legal.html. Its source is available from
+  https://ffmpeg.org/download.html and from the BtbN build repository.
 
-## yt-dlp — The Unlicense (planned)
+## yt-dlp — The Unlicense
 
-- **Use:** bundled executable, invoked as a subprocess to resolve media sources.
-  **Terms:** https://github.com/yt-dlp/yt-dlp/blob/master/LICENSE
+- **Use:** `tools/yt-dlp/yt-dlp.exe`, run as a separate program to find media
+  streams. **Terms:** https://github.com/yt-dlp/yt-dlp/blob/master/LICENSE
 
-## Deno — MIT License (planned)
+## Deno — MIT License
 
-- **Use:** runtime used by yt-dlp to solve YouTube challenges.
-  **Terms:** https://github.com/denoland/deno/blob/main/LICENSE.md
+- **Use:** `tools/deno/deno.exe`, the JavaScript runtime yt-dlp uses for
+  YouTube. **Terms:** https://github.com/denoland/deno/blob/main/LICENSE.md
+
+## Simple TT Media — MIT License
+
+- **Use:** TT Central's media bot (`src/media/`) is a native C++ port of Simple
+  TT Media's audio engine, player, sources, lock and command set. Copyright (c)
+  2026 Simple TT Media contributors; MIT license (permission notice: "Permission
+  is hereby granted, free of charge, to any person obtaining a copy of this
+  software ... THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND").

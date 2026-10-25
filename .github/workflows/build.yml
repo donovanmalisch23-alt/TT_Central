@@ -89,3 +89,9 @@ jobs:
       - name: Client self-test (in the real TTCentral.exe)
         shell: pwsh
         run: ./scripts/ci/selftest.ps1
+
+      # Portable zip + installer, each tested with a clean PATH. Not uploaded:
+      # the packages contain the proprietary TeamTalk SDK.
+      - name: Package and test the packages
+        shell: pwsh
+        run: ./scripts/ci/package-test.ps1

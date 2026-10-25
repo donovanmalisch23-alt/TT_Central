@@ -6,6 +6,7 @@
 #include "ttc/central.h"
 #include "ttc/localserver.h"
 #include "ttc/serverwindow.h"
+#include "ttc/welcomedialog.h"
 #include "ttc/mediabotcontroller.h"
 #include "ttc/mediabotpage.h"
 #include "ttc/mediabotwindow.h"
@@ -22,6 +23,7 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QSpinBox>
 #include <QMainWindow>
 #include <QMenu>
@@ -76,6 +78,7 @@ private slots:
     {
         // Never write to the developer's real settings.
         QStandardPaths::setTestModeEnabled(true);
+        qputenv("TTC_NO_WELCOME", "1");   // no first-run dialog during tests
     }
 
     // --- NotificationCenter ---------------------------------------------
@@ -247,7 +250,8 @@ private slots:
         for (QAction* a : central.menu()->actions())
             if (!a->isSeparator())
                 titles << a->text();
-        QCOMPARE(titles.size(), 9);
+        QCOMPARE(titles.size(), 11);
+        QVERIFY(titles.contains(QStringLiteral("TT Central user &guide")));
         QVERIFY(titles.contains(QStringLiteral("&Local server...")));
         QVERIFY(titles.contains(QStringLiteral("Set up a local ser&ver...")));
         QVERIFY(titles.contains(QStringLiteral("Media &bot...")));
@@ -483,6 +487,21 @@ private slots:
         server.start();
         QCOMPARE(server.state(), LocalServer::State::Failed);
         QVERIFY(server.stateText().contains(QStringLiteral("not found")));
+    }
+
+    void welcomeDialogIsAccessible()
+    {
+        WelcomeDialog dlg;
+        dlg.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&dlg));
+        const QStringList problems = auditAccessibility(&dlg);
+        QVERIFY2(problems.isEmpty(), qPrintable(problems.join(QLatin1Char('\n'))));
+        QVERIFY(!dlg.showAgain());
+        for (QPushButton* b : dlg.findChildren<QPushButton*>())
+            if (b->text().contains(QStringLiteral("media")))
+                b->click();
+        QCOMPARE(dlg.choice(), WelcomeDialog::SetUpMediaBot);
+        QCOMPARE(dlg.result(), int(QDialog::Accepted));
     }
 
     void auditCatchesUnnamedControls()
